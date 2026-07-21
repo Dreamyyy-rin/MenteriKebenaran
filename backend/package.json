@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "bun --hot server.ts",
-    "start": "bun server.ts"
+    "start": "bun server.ts",
+    "seed:admin": "bun src/seeders/adminSeeder.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -30,7 +31,7 @@
     "express": "^5.2.1",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.7.4",
+    "mongoose": "8.x",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "slugify": "^1.6.9"

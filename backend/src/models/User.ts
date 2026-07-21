@@ -1,18 +1,24 @@
-/*
-* User Model Example
-* Used for defining the Model of Mongoose Schemas. There's no logic in this file!
-* This code and comments is allowed to delete.
-*/
-
 import { Schema, model } from "mongoose";
 
-const userSchema = new Schema({
-  fullName: String,
-  username: String,
-  email: String,
-  password: String
-}, {
-  timestamps: true
-});
+export interface IUser {
+  fullName: string;
+  username: string;
+  email: string;
+  password: string;
+  role: "user" | "admin";
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
-export default model("User", userSchema);
+const userSchema = new Schema<IUser>(
+  {
+    fullName: { type: String, required: true, trim: true },
+    username: { type: String, required: true, unique: true, trim: true },
+    email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
+    password: { type: String, required: true },
+    role:     { type: String, enum: ["user", "admin"], default: "user" },
+  },
+  { timestamps: true }
+);
+
+export default model<IUser>("User", userSchema);

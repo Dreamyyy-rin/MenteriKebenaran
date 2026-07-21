@@ -1,15 +1,13 @@
-/*
-* Route example
-* Defining the API routes for authentication.
-* This code and comments is allowed to delete.
-*/
-
 import { Router } from "express";
 import { AuthController } from "@/controllers/auth.controller";
 
 const router = Router();
 const controller = new AuthController();
 
-router.post("/register", controller.register);
+// POST /api/auth/register
+router.post("/register", controller.register.bind(controller));
+
+// POST /api/auth/login
+router.post("/login", controller.login.bind(controller));
 
 export default router;
