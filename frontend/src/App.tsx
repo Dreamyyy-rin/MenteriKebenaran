@@ -1,15 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
-import LoginPage from "./pages/LoginPage";
+import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Supaya saat buka web awal (/) langsung dilempar ke /login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-        
-        {/* Halaman Login */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
       </Routes>
     </BrowserRouter>
   );
