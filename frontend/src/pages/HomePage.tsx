@@ -56,14 +56,17 @@ export default function HomePage() {
 
       <main className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-10 space-y-16">
         {articles.length === 0 ? (
-          <div className="py-24 text-center border rounded-3xl bg-card/40 space-y-4 max-w-xl mx-auto">
-            <h2 className="text-2xl font-bold">Belum Ada Berita di Database</h2>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Database saat ini masih kosong. Silakan login dan masuk ke Dashboard untuk menerbitkan berita pertama Anda!
+          <div className="py-32 text-center border border-border/50 rounded-[2rem] bg-gradient-to-b from-card/40 to-muted/20 shadow-sm max-w-2xl mx-auto space-y-6">
+            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-4xl">📰</span>
+            </div>
+            <h2 className="text-3xl font-extrabold tracking-tight">Belum Ada Berita di Database</h2>
+            <p className="text-muted-foreground text-base leading-relaxed max-w-md mx-auto">
+              Portal saat ini masih kosong. Silakan masuk ke Dashboard untuk mulai menulis dan menerbitkan berita pertama Anda!
             </p>
             <div className="pt-2">
               <Link to="/dashboard">
-                <Button className="rounded-full px-6">Buka Dashboard</Button>
+                <Button size="lg" className="rounded-full px-8 font-semibold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">Buka Dashboard</Button>
               </Link>
             </div>
           </div>

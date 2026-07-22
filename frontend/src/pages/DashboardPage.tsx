@@ -241,7 +241,7 @@ export default function DashboardPage() {
               onClick={() => setActiveTab("overview")}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === "overview"
-                  ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
@@ -253,7 +253,7 @@ export default function DashboardPage() {
               onClick={() => setActiveTab("my-articles")}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === "my-articles"
-                  ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
@@ -268,7 +268,7 @@ export default function DashboardPage() {
               }}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === "write-article"
-                  ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
@@ -287,7 +287,7 @@ export default function DashboardPage() {
                 onClick={() => setActiveTab("all-articles")}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === "all-articles"
-                    ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
@@ -420,9 +420,9 @@ export default function DashboardPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {myArticles.map((item) => (
-                  <div key={item._id} className="space-y-3 border rounded-2xl p-4 bg-card/40">
+                  <div key={item._id} className="space-y-3 border rounded-2xl p-4 bg-card shadow-sm hover:shadow-md transition-shadow">
                     <ArticleCard news={item} formatDate={formatDate} />
                     <div className="pt-3 border-t flex justify-end gap-2">
                       <Button
@@ -463,7 +463,7 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {articles.map((item) => (
-                <div key={item._id} className="space-y-3 border rounded-2xl p-4 bg-card/40">
+                <div key={item._id} className="space-y-3 border rounded-2xl p-4 bg-card shadow-sm hover:shadow-md transition-shadow">
                   <ArticleCard news={item} formatDate={formatDate} />
                   <div className="pt-3 border-t flex justify-between items-center">
                     <span className="text-xs text-muted-foreground font-medium">

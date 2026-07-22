@@ -263,19 +263,16 @@ export function CommentSection({ newsId }: CommentSectionProps) {
   };
 
   // Render a single comment card (used for both root + reply)
-  function CommentCard({
-    item,
-    isReply = false,
-  }: {
-    item: DiscussionItem;
-    isReply?: boolean;
-  }) {
+  const renderCommentCard = (
+    item: DiscussionItem,
+    isReply: boolean = false
+  ) => {
     const replies = getReplies(item._id);
     const isCollapsed = collapsedThreads.has(item._id);
     const isReplying = replyingTo === item._id;
 
     return (
-      <div className={isReply ? "ml-10 mt-3" : ""}>
+      <div key={item._id} className={isReply ? "ml-10 mt-3" : ""}>
         <div className="flex items-start justify-between gap-4 group">
           <div className="flex items-start gap-3 flex-1">
             {/* Avatar */}
@@ -354,7 +351,7 @@ export function CommentSection({ newsId }: CommentSectionProps) {
                 onClick={() =>
                   setActiveMenuId(activeMenuId === item._id ? null : item._id)
                 }
-                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 title="Opsi"
               >
                 <MoreVertical className="w-4 h-4" />
@@ -380,8 +377,8 @@ export function CommentSection({ newsId }: CommentSectionProps) {
 
         {/* Inline reply form */}
         {isReplying && token && (
-          <div className="ml-12 mt-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-1">
-            <Avatar className="h-7 w-7 border shrink-0 mt-1">
+          <div className="ml-12 mt-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-1 bg-muted/20 p-3 rounded-2xl border border-border/40">
+            <Avatar className="h-8 w-8 border shrink-0">
               <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-bold">
                 {currentUser?.fullName?.charAt(0) || "U"}
               </AvatarFallback>
@@ -393,7 +390,7 @@ export function CommentSection({ newsId }: CommentSectionProps) {
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder={`Balas komentar ${item.userId?.fullName || "ini"}...`}
                 rows={2}
-                className="w-full rounded-xl border border-input bg-background p-2.5 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                className="w-full rounded-xl border border-input/50 bg-background p-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/40 resize-none shadow-sm"
               />
               <div className="flex items-center gap-2 justify-end">
                 <Button
@@ -423,10 +420,8 @@ export function CommentSection({ newsId }: CommentSectionProps) {
 
         {/* Replies thread */}
         {!isReply && replies.length > 0 && !isCollapsed && (
-          <div className="mt-2 pl-1 border-l-2 border-border/50 ml-4 space-y-3">
-            {replies.map((reply) => (
-              <CommentCard key={reply._id} item={reply} isReply />
-            ))}
+          <div className="mt-3 pl-1 border-l-2 border-primary/20 ml-4 space-y-4 rounded-bl-lg">
+            {replies.map((reply) => renderCommentCard(reply, true))}
           </div>
         )}
       </div>
@@ -434,12 +429,13 @@ export function CommentSection({ newsId }: CommentSectionProps) {
   }
 
   return (
-    <section className="space-y-8 pt-8 border-t relative">
-      <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-bold tracking-tight">
-          Forum Diskusi ({rootComments.length})
-        </h3>
-      </div>
+    <section className="pt-8 pb-16">
+      <div className="bg-card border border-border/50 shadow-sm rounded-3xl p-6 sm:p-8 space-y-8">
+        <div className="flex items-center justify-between border-b border-border/40 pb-4">
+          <h3 className="text-2xl font-bold tracking-tight">
+            Forum Diskusi <span className="text-muted-foreground text-lg font-medium">({rootComments.length})</span>
+          </h3>
+        </div>
 
       {/* Root comment input */}
       {token ? (
@@ -493,17 +489,18 @@ export function CommentSection({ newsId }: CommentSectionProps) {
           Belum ada tanggapan. Jadilah yang pertama berdiskusi!
         </p>
       ) : (
-        <div className="space-y-6 pt-2">
+        <div className="space-y-6 pt-4">
           {rootComments.map((item, index) => (
             <div key={item._id}>
-              <CommentCard item={item} />
+              {renderCommentCard(item)}
               {index < rootComments.length - 1 && (
-                <Separator className="mt-6" />
+                <Separator className="mt-6 bg-border/40" />
               )}
             </div>
           ))}
         </div>
       )}
+      </div>
 
       {/* Delete confirmation modal */}
       {confirmDeleteId && (

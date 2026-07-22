@@ -9,9 +9,9 @@ interface ArticleCardProps {
 
 export function ArticleCard({ news, formatDate }: ArticleCardProps) {
   return (
-    <Link to={`/news/${news.slug}`} className="group block">
-      <div className="space-y-3.5">
-        <div className="aspect-[16/10] w-full overflow-hidden rounded-2xl relative">
+    <Link to={`/news/${news.slug}`} className="group block transition-all duration-300 hover:-translate-y-1">
+      <div className="space-y-4">
+        <div className="aspect-[16/10] w-full overflow-hidden rounded-2xl relative shadow-sm group-hover:shadow-md transition-shadow">
           {news.category && (
             <Badge className="absolute top-3 left-3 z-10 font-semibold bg-slate-900/90 text-white hover:bg-slate-900 border-none rounded-md px-2.5 py-1 text-xs shadow-sm">
               {news.category}
