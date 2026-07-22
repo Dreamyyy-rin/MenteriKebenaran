@@ -3,28 +3,11 @@ import { useParams, Link } from "react-router";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { CommentSection } from "@/features/comment/components/CommentSection";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ArrowLeft, Calendar, User, Eye } from "lucide-react";
 import type { NewsArticle } from "@/types/news";
-
-// Fallback Mock Data jika berita tidak ditemukan di backend (untuk preview)
-const MOCK_DETAIL: NewsArticle = {
-  _id: "1",
-  title: "Global Markets Rally as Tech Giants Announce Breakthrough AI Models",
-  slug: "global-markets-rally-ai-models",
-  artikel: `Major technology companies have unveiled their latest artificial intelligence models, causing a significant surge in stock markets worldwide. Investors are optimistic about the productivity gains expected across various sectors.
-
-The new generation of models features advanced reasoning abilities, multi-modal integration, and significantly reduced computational costs. Industry leaders believe this will accelerate deployment across healthcare, finance, and automated manufacturing.
-
-"We are witnessing a pivotal shift in how enterprise software is constructed," said a senior analyst at Global Financial Intelligence. "The speed at which these models are being integrated into core business operations is unprecedented."
-
-However, policymakers and ethics boards have renewed calls for stringent regulation, emphasizing the need for transparent safety audits and data provenance verification.`,
-  category: "Tech",
-  foto: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000",
-  author: { _id: "a1", fullName: "John Doe", username: "johndoe" },
-  createdAt: "2026-07-20T10:00:00Z",
-  updatedAt: "2026-07-20T10:00:00Z",
-};
 
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -40,11 +23,11 @@ export default function ArticleDetailPage() {
           const data = await res.json();
           setArticle(data);
         } else {
-          setArticle({ ...MOCK_DETAIL, slug });
+          setArticle(null);
         }
       } catch (error) {
         console.error("Gagal mengambil detail berita:", error);
-        setArticle({ ...MOCK_DETAIL, slug });
+        setArticle(null);
       } finally {
         setLoading(false);
       }
@@ -53,18 +36,19 @@ export default function ArticleDetailPage() {
     fetchArticle();
   }, [slug]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "long",
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("id-ID", {
       day: "numeric",
+      month: "long",
       year: "numeric",
     });
   };
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <p className="text-xl text-muted-foreground animate-pulse">Memuat artikel...</p>
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <p className="text-xl text-muted-foreground animate-pulse">Memuat berita dari database...</p>
       </div>
     );
   }
@@ -73,12 +57,16 @@ export default function ArticleDetailPage() {
     return (
       <div className="min-h-screen bg-background flex flex-col justify-between">
         <Navbar />
-        <div className="container mx-auto px-4 py-20 text-center space-y-4">
-          <h1 className="text-3xl font-bold">Artikel Tidak Ditemukan</h1>
-          <p className="text-muted-foreground">Maaf, artikel yang kamu cari tidak ada atau telah dihapus.</p>
-          <Link to="/">
-            <Button className="rounded-full">Kembali ke Beranda</Button>
-          </Link>
+        <div className="container mx-auto px-4 py-20 text-center space-y-4 max-w-md">
+          <h1 className="text-3xl font-extrabold">Artikel Tidak Ditemukan</h1>
+          <p className="text-muted-foreground text-sm">
+            Maaf, artikel yang kamu cari tidak ditemukan di database atau telah dihapus.
+          </p>
+          <div className="pt-2">
+            <Link to="/">
+              <Button className="rounded-full">Kembali ke Beranda</Button>
+            </Link>
+          </div>
         </div>
         <Footer />
       </div>
@@ -89,61 +77,73 @@ export default function ArticleDetailPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-6 sm:px-8 py-10 space-y-10">
-        {/* Navigation Back */}
-        <div>
-          <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-            ← Kembali ke Beranda
-          </Link>
-        </div>
+      <main className="max-w-4xl mx-auto px-6 sm:px-8 py-10 space-y-8">
+        {/* Tombol Navigasi Kembali */}
+        <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
+        </Link>
 
-        {/* Article Header */}
-        <header className="space-y-6">
-          {article.category && (
-            <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full">
-              {article.category}
-            </span>
-          )}
+        {/* Header Artikel */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="rounded-full px-3 py-1 font-semibold text-xs">
+              {article.category || "General"}
+            </Badge>
+          </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-foreground">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight text-foreground">
             {article.title}
           </h1>
 
-          <div className="flex items-center gap-4 pt-2">
-            <Avatar className="h-11 w-11 border">
-              <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                {article.author?.fullName?.charAt(0) || "A"}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-semibold text-foreground leading-none">
-                {article.author?.fullName || "Admin"}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Dipublikasikan pada {formatDate(article.createdAt)} • {Math.ceil(article.artikel.length / 200)} min read
-              </p>
+          {/* Meta Info Penulis & Tanggal */}
+          <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground pt-2 border-b pb-6">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-7 w-7">
+                <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
+                  {article.author?.fullName?.charAt(0) || "A"}
+                </AvatarFallback>
+              </Avatar>
+              <span className="font-medium text-foreground">
+                {article.author?.fullName || article.author?.username || "Penulis"}
+              </span>
             </div>
-          </div>
-        </header>
 
-        {/* Featured Image */}
-        <div className="aspect-[16/9] w-full overflow-hidden rounded-2xl border shadow-sm">
-          <img
-            src={article.foto || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000"}
-            alt={article.title}
-            className="w-full h-full object-cover"
-          />
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-4 h-4" />
+              <span>{formatDate(article.createdAt)}</span>
+            </div>
+
+            {article.views !== undefined && (
+              <div className="flex items-center gap-1.5">
+                <Eye className="w-4 h-4" />
+                <span>{article.views} views</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Article Content */}
-        <article className="prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed space-y-6 text-lg font-normal">
-          {article.artikel.split("\n\n").map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
+        {/* Gambar Utama Artikel */}
+        {article.foto && (
+          <div className="aspect-video w-full rounded-2xl overflow-hidden border shadow-sm">
+            <img
+              src={article.foto}
+              alt={article.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
+        {/* Isi Paragraf Artikel */}
+        <article className="prose prose-slate dark:prose-invert max-w-none text-base sm:text-lg leading-relaxed text-foreground/95 space-y-6 pt-4">
+          {article.artikel.split("\n\n").map((paragraph, idx) => (
+            <p key={idx}>{paragraph}</p>
           ))}
         </article>
 
-        {/* FORUM DISKUSI KOMENTAR */}
-        <CommentSection newsId={article._id} />
+        {/* Forum Komentar */}
+        <div className="pt-10">
+          <CommentSection newsId={article._id} />
+        </div>
       </main>
 
       <Footer />

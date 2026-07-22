@@ -17,10 +17,12 @@ export interface NewsArticle {
 }
 
 export interface NewsResponse {
-  news: NewsArticle[];
+  data?: NewsArticle[];
+  news?: NewsArticle[];
   total: number;
   page: number;
-  pages: number;
+  totalPages?: number;
+  pages?: number;
 }
 
 export interface DiscussionItem {

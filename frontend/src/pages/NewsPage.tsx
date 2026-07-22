@@ -5,53 +5,6 @@ import { ArticleCard } from "@/features/article/components/ArticleCard";
 import { Input } from "@/components/ui/input";
 import type { NewsArticle, NewsResponse } from "@/types/news";
 
-const MOCK_NEWS_PAGE: NewsArticle[] = [
-  {
-    _id: "n1",
-    title: "Central Bank Keeps Interest Rates Steady Amid Inflation Concerns",
-    slug: "central-bank-keeps-interest-rates-steady",
-    artikel: "The central bank has decided to hold interest rates at their current level, citing ongoing concerns about persistent inflation and market volatility worldwide.",
-    category: "Berita",
-    foto: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=1000",
-    author: { _id: "a2", fullName: "Jane Smith", username: "janesmith" },
-    createdAt: "2026-07-19T14:30:00Z",
-    updatedAt: "2026-07-19T14:30:00Z",
-  },
-  {
-    _id: "n2",
-    title: "National Election Results: Incumbent Party Secures Narrow Victory",
-    slug: "national-election-results-incumbent-victory",
-    artikel: "After a closely fought campaign, the incumbent party has managed to retain a narrow majority in parliament, promising political continuity and economic reform.",
-    category: "Berita",
-    foto: "https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?q=80&w=1000",
-    author: { _id: "a3", fullName: "John Doe", username: "johndoe" },
-    createdAt: "2026-07-18T09:15:00Z",
-    updatedAt: "2026-07-18T09:15:00Z",
-  },
-  {
-    _id: "n3",
-    title: "Championship Finals: Underdogs Claim Historic Victory",
-    slug: "championship-finals-underdog-victory",
-    artikel: "In an unprecedented turn of events, the underdog team claimed the championship title with a sudden-death winning goal in overtime, shocking fans nationwide.",
-    category: "Berita",
-    foto: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1000",
-    author: { _id: "a3", fullName: "John Doe", username: "johndoe" },
-    createdAt: "2026-07-16T20:00:00Z",
-    updatedAt: "2026-07-16T20:00:00Z",
-  },
-  {
-    _id: "n4",
-    title: "Renewable Energy Capacity Reaches Record High Global Shares",
-    slug: "renewable-energy-record-high-capacity",
-    artikel: "Solar and wind energy installations have surpassed all previous benchmarks this quarter, significantly reducing grid carbon intensity across major industrial hubs.",
-    category: "Berita",
-    foto: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?q=80&w=1000",
-    author: { _id: "a1", fullName: "John Doe", username: "johndoe" },
-    createdAt: "2026-07-14T08:00:00Z",
-    updatedAt: "2026-07-14T08:00:00Z",
-  }
-];
-
 export default function NewsPage() {
   const [newsList, setNewsList] = useState<NewsArticle[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -68,21 +21,14 @@ export default function NewsPage() {
         const res = await fetch(queryUrl);
         if (res.ok) {
           const data: NewsResponse = await res.json();
-          if (data.news && Array.isArray(data.news) && data.news.length > 0) {
-            setNewsList(data.news);
-          } else {
-            const filteredMock = MOCK_NEWS_PAGE.filter(n => 
-              n.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              n.artikel.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            setNewsList(filteredMock);
-          }
+          const items = data.data || data.news || (Array.isArray(data) ? data : []);
+          setNewsList(items);
         } else {
-          setNewsList(MOCK_NEWS_PAGE);
+          setNewsList([]);
         }
       } catch (error) {
-        console.error("Gagal memuat berita:", error);
-        setNewsList(MOCK_NEWS_PAGE);
+        console.error("Gagal memuat berita dari database:", error);
+        setNewsList([]);
       } finally {
         setLoading(false);
       }
@@ -114,14 +60,14 @@ export default function NewsPage() {
               Indeks Berita
             </h1>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Kumpulan berita terkini, peristiwa nasional, dan informasi tepercaya dari MenteriKebenaran.
+              Kumpulan berita terkini dan informasi tepercaya dari database MenteriKebenaran.
             </p>
           </div>
 
           <div className="relative w-full">
             <Input
               type="text"
-              placeholder="Cari berita berdasarkan judul atau isi kata kunci..."
+              placeholder="Cari berita berdasarkan judul atau kata kunci..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="h-12 w-full rounded-xl bg-muted/30 pl-4 pr-12 text-base focus-visible:ring-1 border"
@@ -134,13 +80,15 @@ export default function NewsPage() {
 
         {loading ? (
           <div className="py-20 text-center text-muted-foreground animate-pulse">
-            Memuat daftar berita...
+            Memuat daftar berita dari database...
           </div>
         ) : newsList.length === 0 ? (
-          <div className="py-20 text-center space-y-2">
+          <div className="py-20 text-center space-y-2 border rounded-2xl bg-card/30">
             <p className="text-lg font-semibold text-foreground">Berita Tidak Ditemukan</p>
             <p className="text-sm text-muted-foreground">
-              Tidak ada berita yang cocok dengan kata kunci &quot;{searchTerm}&quot;.
+              {searchTerm.trim()
+                ? `Tidak ada berita yang cocok dengan kata kunci "${searchTerm}".`
+                : "Belum ada postingan berita di database."}
             </p>
           </div>
         ) : (

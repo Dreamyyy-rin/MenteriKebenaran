@@ -24,7 +24,8 @@ export default function SearchPage() {
         const res = await fetch(`http://localhost:5000/api/news?search=${encodeURIComponent(query)}`);
         if (res.ok) {
           const data: NewsResponse = await res.json();
-          setResults(data.news || []);
+          const items = data.data || data.news || (Array.isArray(data) ? data : []);
+          setResults(items);
         } else {
           setResults([]);
         }

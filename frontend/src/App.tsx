@@ -6,6 +6,7 @@ import ArticleDetailPage from "@/pages/ArticleDetailPage";
 import NewsPage from "@/pages/NewsPage";
 import ArticlesPage from "@/pages/ArticlesPage";
 import SearchPage from "@/pages/SearchPage";
+import DashboardPage from "@/pages/DashboardPage";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/news/:slug" element={<ArticleDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
     </BrowserRouter>
   );
