@@ -22,3 +22,16 @@ export interface NewsResponse {
   page: number;
   pages: number;
 }
+
+export interface DiscussionItem {
+  _id: string;
+  newsId: string;
+  userId: {
+    _id: string;
+    fullName: string;
+    username: string;
+  };
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+}

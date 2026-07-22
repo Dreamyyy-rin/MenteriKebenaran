@@ -44,10 +44,11 @@ export function LoginForm({
       const data = await response.json()
 
       if (response.ok) {
-        //sementara
         console.log("Login sukses, token:", data.token)
+        localStorage.setItem("token", data.token)
+        localStorage.setItem("user", JSON.stringify(data.user))
         alert("Login Sukses! Selamat datang " + data.user.fullName)
-        
+        window.location.href = "/"
       } else {
         //sementara
         alert("Gagal Login: " + (data.error || "Terjadi kesalahan"))
