@@ -55,16 +55,18 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 h-16 flex items-center justify-between gap-4">
         
         {/* Left: Brand Logo */}
-        <Link to="/" className="font-extrabold text-xl tracking-tight text-foreground hover:text-primary transition-colors shrink-0 flex items-center gap-2">
-          MenteriKebenaran<span className="text-primary">.</span>
+        <Link to="/" className="font-extrabold text-2xl tracking-tight shrink-0 flex items-center gap-1.5 hover:scale-105 transition-transform duration-300">
+          <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Menteri</span>
+          <span className="text-foreground">Kebenaran</span>
+          <span className="text-primary text-3xl leading-none">.</span>
         </Link>
 
         {/* Center: Simple Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-          <Link to="/" className="hover:text-foreground transition-colors font-semibold">
+        <nav className="hidden md:flex items-center gap-8 text-sm font-bold text-muted-foreground/80">
+          <Link to="/" className="hover:text-primary hover:-translate-y-0.5 transition-all">
             Beranda
           </Link>
-          <Link to="/news" className="hover:text-foreground transition-colors">
+          <Link to="/news" className="hover:text-primary hover:-translate-y-0.5 transition-all">
             Berita
           </Link>
           <Link to="/articles" className="hover:text-foreground transition-colors">
@@ -127,15 +129,14 @@ export function Navbar() {
               )}
             </div>
           ) : (
-            /* TOMBOL LOGIN & DAFTAR SAAT BELUM LOGIN */
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Link to="/login">
-                <Button variant="ghost" size="sm" className="h-8 text-xs rounded-full px-3">
+                <Button variant="ghost" className="rounded-full px-5 font-bold hover:bg-primary/10 hover:text-primary transition-colors">
                   Login
                 </Button>
               </Link>
               <Link to="/register">
-                <Button size="sm" className="h-8 text-xs rounded-full px-3">
+                <Button className="rounded-full px-6 font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all bg-gradient-to-r from-primary to-indigo-500 border-none">
                   Daftar
                 </Button>
               </Link>

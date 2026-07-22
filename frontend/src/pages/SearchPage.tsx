@@ -75,10 +75,13 @@ export default function SearchPage() {
             Silakan masukkan kata kunci pencarian pada Navbar di atas.
           </div>
         ) : results.length === 0 ? (
-          <div className="py-20 text-center space-y-3">
-            <p className="text-xl font-bold text-foreground">Tidak Ada Hasil</p>
-            <p className="text-muted-foreground text-sm">
-              Tidak ditemukan berita yang cocok dengan kata kunci &quot;{query}&quot;. Cobalah kata kunci yang lain!
+          <div className="py-24 text-center space-y-4 border border-border/40 rounded-[2rem] bg-gradient-to-b from-card/30 to-muted/10 shadow-sm max-w-2xl mx-auto">
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-3xl opacity-50">📭</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">Tidak Ada Hasil</p>
+            <p className="text-base text-muted-foreground max-w-md mx-auto">
+              Tidak ditemukan berita yang cocok dengan kata kunci <span className="font-semibold text-foreground">&quot;{query}&quot;</span>. Cobalah kata kunci yang lain!
             </p>
           </div>
         ) : (

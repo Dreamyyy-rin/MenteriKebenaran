@@ -10,9 +10,9 @@ interface HeroArticleProps {
 export function HeroArticle({ article, formatDate }: HeroArticleProps) {
   return (
     <Link to={`/news/${article.slug}`} className="group block">
-      <div className="relative overflow-hidden rounded-2xl transition-all duration-300">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-7 aspect-[16/10] w-full overflow-hidden rounded-xl relative">
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-card border-2 border-border/40 shadow-sm hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-500">
+        <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
+          <div className="lg:col-span-7 aspect-[16/10] w-full overflow-hidden relative">
             <img
               src={article.foto || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000"}
               alt={article.title}
@@ -20,9 +20,9 @@ export function HeroArticle({ article, formatDate }: HeroArticleProps) {
             />
           </div>
 
-          <div className="lg:col-span-5 space-y-4 lg:pr-2">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="lg:col-span-5 flex flex-col justify-center p-8 lg:p-12">
+            <div className="mb-4">
+              <span className="text-xs font-extrabold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1.5 rounded-full">
                 Headline News
               </span>
             </div>

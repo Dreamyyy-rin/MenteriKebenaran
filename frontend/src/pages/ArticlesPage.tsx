@@ -64,15 +64,15 @@ export default function ArticlesPage() {
             </p>
           </div>
 
-          <div className="relative w-full">
+          <div className="relative w-full max-w-3xl mt-4">
             <Input
               type="text"
               placeholder="Cari artikel berdasarkan judul atau kata kunci..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-12 w-full rounded-xl bg-muted/30 pl-4 pr-12 text-base focus-visible:ring-1 border"
+              className="h-14 w-full rounded-2xl bg-muted/40 pl-6 pr-14 text-base focus-visible:ring-2 focus-visible:ring-primary/20 border-border/50 shadow-sm transition-all focus-visible:bg-background"
             />
-            <span className="absolute right-4 top-3.5 text-base text-muted-foreground">
+            <span className="absolute right-5 top-4 text-xl opacity-60">
               🔍
             </span>
           </div>
@@ -83,12 +83,15 @@ export default function ArticlesPage() {
             Memuat daftar artikel dari database...
           </div>
         ) : articlesList.length === 0 ? (
-          <div className="py-20 text-center space-y-2 border rounded-2xl bg-card/30">
-            <p className="text-lg font-semibold text-foreground">Artikel Tidak Ditemukan</p>
-            <p className="text-sm text-muted-foreground">
+          <div className="py-24 text-center space-y-4 border border-border/40 rounded-[2rem] bg-gradient-to-b from-card/30 to-muted/10 shadow-sm max-w-2xl mx-auto">
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-3xl opacity-50">📭</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">Artikel Tidak Ditemukan</p>
+            <p className="text-base text-muted-foreground max-w-md mx-auto">
               {searchTerm.trim()
-                ? `Tidak ada artikel yang cocok dengan kata kunci "${searchTerm}".`
-                : "Belum ada postingan artikel di database."}
+                ? `Tidak ada artikel yang cocok dengan kata kunci "${searchTerm}". Coba gunakan kata kunci lain.`
+                : "Belum ada postingan artikel di database saat ini."}
             </p>
           </div>
         ) : (

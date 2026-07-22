@@ -94,19 +94,19 @@ export default function ArticleDetailPage() {
             </Badge>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight text-foreground">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.1] text-foreground text-balance">
             {article.title}
           </h1>
 
           {/* Meta Info Penulis & Tanggal */}
           <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground pt-2 border-b pb-6">
             <div className="flex items-center gap-2">
-              <Avatar className="h-7 w-7">
+              <Avatar className="h-8 w-8">
                 <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
                   {article.author?.fullName?.charAt(0) || "A"}
                 </AvatarFallback>
               </Avatar>
-              <span className="font-medium text-foreground">
+              <span className="font-semibold text-foreground text-base">
                 {article.author?.fullName || article.author?.username || "Penulis"}
               </span>
             </div>
@@ -127,17 +127,18 @@ export default function ArticleDetailPage() {
 
         {/* Gambar Utama Artikel */}
         {article.foto && (
-          <div className="aspect-video w-full rounded-2xl overflow-hidden border shadow-sm">
+          <div className="aspect-[21/9] w-full rounded-[3rem] overflow-hidden border-4 border-primary/10 shadow-xl mt-6 relative">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10 pointer-events-none"></div>
             <img
               src={article.foto}
               alt={article.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
             />
           </div>
         )}
 
         {/* Isi Paragraf Artikel */}
-        <article className="prose prose-slate dark:prose-invert max-w-none text-base sm:text-lg leading-relaxed text-foreground/95 space-y-6 pt-4">
+        <article className="prose prose-slate dark:prose-invert max-w-none text-lg sm:text-xl leading-relaxed text-foreground/90 space-y-7 pt-8 font-medium">
           {article.artikel.split("\n\n").map((paragraph, idx) => (
             <p key={idx}>{paragraph}</p>
           ))}

@@ -67,7 +67,7 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card className="overflow-hidden p-0">
+      <Card className="overflow-hidden p-0 shadow-2xl shadow-primary/10 rounded-[2.5rem] border-2 border-primary/10">
         <CardContent className="grid p-0 md:grid-cols-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 md:p-8 py-8 md:py-10">
@@ -89,6 +89,7 @@ export function LoginForm({
                         <Input
                           placeholder="user@yahoo.com"
                           type="email"
+                          className="h-12 rounded-xl bg-muted/30 px-4 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                           {...field}
                         />
                       </FormControl>
@@ -106,14 +107,19 @@ export function LoginForm({
                         <FormLabel>Password</FormLabel>
                       </div>
                       <FormControl>
-                        <Input type="password" placeholder="******" {...field} />
+                        <Input 
+                          type="password" 
+                          placeholder="******" 
+                          className="h-12 rounded-xl bg-muted/30 px-4 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+                          {...field} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <Button type="submit" className="w-full mt-2">Login</Button>
+                <Button type="submit" size="lg" className="w-full mt-4 rounded-2xl h-14 font-extrabold text-lg shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-1 bg-gradient-to-r from-primary to-blue-500 border-none">Masuk ke Portal 🚀</Button>
               <FieldDescription className="text-center">
                 Don&apos;t have an account? <a href="/register">Sign up</a>
               </FieldDescription>

@@ -10,19 +10,18 @@ interface TrendingSectionProps {
 export function TrendingSection({ articles, formatDate }: TrendingSectionProps) {
   return (
     <aside className="space-y-6 sticky top-24 self-start">
-      <div className="flex items-center gap-2">
-        <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-        <h2 className="text-2xl font-bold">Trending Now</h2>
-      </div>
+      <div className="space-y-6 bg-muted/30 p-6 rounded-[2.5rem] border-2 border-border/50">
+        <h2 className="text-2xl font-extrabold tracking-tight flex items-center gap-2">
+          <span className="text-3xl">📈</span> Sedang Tren
+        </h2>
 
-      <div className="bg-muted/30 rounded-xl p-6 border">
         <div className="space-y-6">
           {articles.map((news, index) => (
             <div key={news._id}>
-              <Link to={`/news/${news.slug}`} className="group flex gap-4 items-start">
-                <span className="text-3xl font-bold text-muted-foreground/30 font-serif leading-none mt-1">
-                  {(index + 1).toString().padStart(2, '0')}
-                </span>
+              <Link to={`/news/${news.slug}`} className="group flex gap-4 transition-all duration-300 hover:bg-card hover:shadow-md p-3 rounded-2xl -mx-3">
+                <div className="shrink-0 font-black text-4xl text-muted-foreground/30 italic group-hover:text-primary/30 transition-colors">
+                  {(index + 1).toString().padStart(2, "0")}
+                </div>
                 <div className="flex-1 space-y-1">
                   {news.category && (
                     <p className="text-xs font-semibold text-primary uppercase tracking-wider">{news.category}</p>
