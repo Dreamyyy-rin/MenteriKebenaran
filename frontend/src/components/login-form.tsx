@@ -14,10 +14,8 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import {
-  Field,
   FieldDescription,
   FieldGroup,
-  FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 
@@ -35,7 +33,6 @@ export function LoginForm({
 
   async function onSubmit(values: LoginInput) {
     try {
-      // Menghubungi endpoint login di backend
       const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: {
