@@ -3,6 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/features/article/components/ArticleCard";
 import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import type { NewsArticle, NewsResponse } from "@/types/news";
 
 export default function ArticlesPage() {
@@ -65,18 +66,17 @@ export default function ArticlesPage() {
           </div>
 
           <div className="relative w-full">
+            <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               placeholder="Cari artikel berdasarkan judul atau kata kunci..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-12 w-full rounded-xl bg-muted/30 pl-4 pr-12 text-base focus-visible:ring-1 border"
+              className="h-12 w-full rounded-xl bg-muted/30 pl-11 pr-4 text-base focus-visible:ring-1 border"
             />
-            <span className="absolute right-4 top-3.5 text-base text-muted-foreground">
-              🔍
-            </span>
           </div>
         </div>
+
 
         {loading ? (
           <div className="py-20 text-center text-muted-foreground animate-pulse">

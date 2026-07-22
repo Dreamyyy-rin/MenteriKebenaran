@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LayoutDashboard, LogOut } from "lucide-react";
+import { toast } from "@/components/ui/toast";
 
 interface UserProfile {
   fullName: string;
@@ -39,15 +40,23 @@ export function Navbar() {
   }, []);
 
   function handleLogout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setCurrentUser(null);
     setIsMenuOpen(false);
-    alert("Berhasil keluar.");
-    navigate("/");
+    toast.confirm({
+      title: "Konfirmasi Keluar",
+      message: "Apakah Anda yakin ingin keluar dari akun MenteriKebenaran? Anda harus login kembali untuk mengakses fitur akun.",
+      variant: "destructive",
+      confirmText: "Ya, Keluar Akun",
+      cancelText: "Batal",
+      icon: <LogOut className="w-6 h-6" />,
+      onConfirm: () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setCurrentUser(null);
+        toast.success("Berhasil Keluar", "Anda telah keluar dari akun.");
+        navigate("/");
+      },
+    });
   }
-
-  const isAdmin = currentUser?.role?.toLowerCase() === "admin";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -58,7 +67,7 @@ export function Navbar() {
           MenteriKebenaran<span className="text-primary">.</span>
         </Link>
 
-        {/* Center: Simple Navigation Links */}
+        {/* Center: Navigation Links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
           <Link to="/" className="hover:text-foreground transition-colors font-semibold">
             Beranda
@@ -70,6 +79,8 @@ export function Navbar() {
             Artikel
           </Link>
         </nav>
+
+
 
         {/* Right: Auth Controls */}
         <div className="flex items-center gap-3 shrink-0">

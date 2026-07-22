@@ -6,7 +6,7 @@ import { CommentSection } from "@/features/comment/components/CommentSection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Calendar, User, Eye } from "lucide-react";
+import { ArrowLeft, Calendar, Eye } from "lucide-react";
 import type { NewsArticle } from "@/types/news";
 
 export default function ArticleDetailPage() {

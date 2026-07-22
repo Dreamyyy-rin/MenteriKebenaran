@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams, useNavigate } from "react-router";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/features/article/components/ArticleCard";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import type { NewsArticle, NewsResponse } from "@/types/news";
 
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const query = searchParams.get("q") || "";
+  const [searchInput, setSearchInput] = useState(query);
   const [results, setResults] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setSearchInput(query);
+  }, [query]);
 
   useEffect(() => {
     async function performSearch() {
@@ -40,6 +48,13 @@ export default function SearchPage() {
     performSearch();
   }, [query]);
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchInput.trim())}`);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("id-ID", {
       day: "numeric",
@@ -53,17 +68,30 @@ export default function SearchPage() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-10 space-y-10">
-        <div className="border-b pb-6 space-y-2">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-            Hasil Pencarian 🔍
-          </h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            {query ? (
-              <>Menampilkan hasil pencarian untuk kata kunci <span className="font-semibold text-foreground">&quot;{query}&quot;</span></>
-            ) : (
-              "Ketikkan kata kunci di kolom pencarian di atas untuk mencari berita."
-            )}
-          </p>
+        <div className="border-b pb-8 space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-3">
+              Hasil Pencarian <Search className="w-8 h-8 text-primary" />
+            </h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
+              {query ? (
+                <>Menampilkan hasil pencarian untuk kata kunci <span className="font-semibold text-foreground">&quot;{query}&quot;</span></>
+              ) : (
+                "Ketikkan kata kunci di kolom pencarian untuk mencari berita atau artikel."
+              )}
+            </p>
+          </div>
+
+          <form onSubmit={handleSearchSubmit} className="relative max-w-xl">
+            <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Cari berita atau artikel..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="h-12 w-full rounded-xl bg-muted/30 pl-11 pr-4 text-base focus-visible:ring-1 border"
+            />
+          </form>
         </div>
 
         {loading ? (
@@ -72,7 +100,7 @@ export default function SearchPage() {
           </div>
         ) : !query.trim() ? (
           <div className="py-20 text-center text-muted-foreground">
-            Silakan masukkan kata kunci pencarian pada Navbar di atas.
+            Silakan masukkan kata kunci pencarian pada kolom pencarian di atas.
           </div>
         ) : results.length === 0 ? (
           <div className="py-20 text-center space-y-3">
@@ -94,3 +122,4 @@ export default function SearchPage() {
     </div>
   );
 }
+

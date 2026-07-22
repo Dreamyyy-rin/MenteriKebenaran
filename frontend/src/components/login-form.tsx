@@ -5,6 +5,7 @@ import { loginSchema, type LoginInput } from "@news-portal/shared"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { toast } from "@/components/ui/toast"
 import {
   Form,
   FormControl,
@@ -44,18 +45,18 @@ export function LoginForm({
       const data = await response.json()
 
       if (response.ok) {
-        console.log("Login sukses, token:", data.token)
         localStorage.setItem("token", data.token)
         localStorage.setItem("user", JSON.stringify(data.user))
-        alert("Login Sukses! Selamat datang " + data.user.fullName)
-        window.location.href = "/"
+        toast.success("Login Sukses!", `Selamat datang ${data.user?.fullName || ""}`)
+        setTimeout(() => {
+          window.location.href = "/"
+        }, 500)
       } else {
-        //sementara
-        alert("Gagal Login: " + (data.error || "Terjadi kesalahan"))
+        toast.error("Gagal Login", data.error || "Email atau kata sandi tidak valid.")
       }
     } catch (error) {
       console.error("Fetch error:", error)
-      alert("Koneksi ke server gagal! Pastikan backend sudah menyala.")
+      toast.error("Koneksi Server Gagal", "Pastikan backend server sudah menyala.")
     }
   }
 

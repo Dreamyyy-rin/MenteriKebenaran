@@ -1,13 +1,19 @@
 import { Link } from "react-router";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Clock } from "lucide-react";
+import { formatTime as defaultFormatTime } from "@/lib/utils";
 import type { NewsArticle } from "@/types/news";
 
 interface HeroArticleProps {
   article: NewsArticle;
   formatDate: (dateString: string) => string;
+  formatTime?: (dateString: string) => string;
 }
 
-export function HeroArticle({ article, formatDate }: HeroArticleProps) {
+export function HeroArticle({ article, formatDate, formatTime }: HeroArticleProps) {
+  const timeFormatter = formatTime || defaultFormatTime;
+  const realTime = timeFormatter(article.createdAt);
+
   return (
     <Link to={`/news/${article.slug}`} className="group block">
       <div className="relative overflow-hidden rounded-2xl transition-all duration-300">
@@ -52,9 +58,12 @@ export function HeroArticle({ article, formatDate }: HeroArticleProps) {
                 </div>
               </div>
 
-              <span className="text-xs text-muted-foreground font-normal">
-                {Math.ceil(article.artikel.length / 200)} min read
-              </span>
+              {realTime && (
+                <span className="text-xs text-muted-foreground font-normal flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  {realTime}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -62,3 +71,4 @@ export function HeroArticle({ article, formatDate }: HeroArticleProps) {
     </Link>
   );
 }
+

@@ -3,7 +3,8 @@ import { Link } from "react-router";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { MoreVertical, Trash2, AlertTriangle } from "lucide-react";
+import { MoreVertical, Trash2 } from "lucide-react";
+import { toast } from "@/components/ui/toast";
 import type { DiscussionItem } from "@/types/news";
 
 interface CommentSectionProps {
@@ -16,10 +17,8 @@ export function CommentSection({ newsId }: CommentSectionProps) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // State untuk Dropdown & Modal Konfirmasi Hapus
+  // State untuk Dropdown Menu
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -68,7 +67,7 @@ export function CommentSection({ newsId }: CommentSectionProps) {
     if (!newComment.trim()) return;
 
     if (!token) {
-      alert("Silakan login terlebih dahulu untuk mengirim komentar.");
+      toast.error("Akses Ditolak", "Silakan login terlebih dahulu untuk mengirim komentar.");
       return;
     }
 
@@ -101,12 +100,13 @@ export function CommentSection({ newsId }: CommentSectionProps) {
 
         setComments((prev) => [createdComment, ...prev]);
         setNewComment("");
+        toast.success("Berhasil", "Komentar terkirim!");
       } else {
-        alert("Gagal mengirim komentar: " + (data.error || "Terjadi kesalahan"));
+        toast.error("Gagal Mengirim", data.error || "Terjadi kesalahan");
       }
     } catch (error) {
       console.error("Error submit comment:", error);
-      alert("Koneksi gagal saat mengirim komentar.");
+      toast.error("Error", "Koneksi gagal saat mengirim komentar.");
     } finally {
       setSubmitting(false);
     }
@@ -116,7 +116,6 @@ export function CommentSection({ newsId }: CommentSectionProps) {
   async function handleDeleteComment(commentId: string) {
     if (!token) return;
 
-    setDeleting(true);
     try {
       const res = await fetch(`http://localhost:5000/api/discussions/${commentId}`, {
         method: "DELETE",
@@ -128,17 +127,15 @@ export function CommentSection({ newsId }: CommentSectionProps) {
       if (res.ok) {
         // Hapus komentar dari list lokal secara instan
         setComments((prev) => prev.filter((item) => item._id !== commentId));
-        setConfirmDeleteId(null);
         setActiveMenuId(null);
+        toast.success("Berhasil", "Komentar dihapus!");
       } else {
         const data = await res.json();
-        alert("Gagal menghapus komentar: " + (data.error || "Akses ditolak"));
+        toast.error("Gagal Menghapus", data.error || "Akses ditolak");
       }
     } catch (error) {
       console.error("Error deleting comment:", error);
-      alert("Terjadi kesalahan jaringan saat menghapus komentar.");
-    } finally {
-      setDeleting(false);
+      toast.error("Error", "Terjadi kesalahan jaringan saat menghapus komentar.");
     }
   }
 
@@ -206,12 +203,16 @@ export function CommentSection({ newsId }: CommentSectionProps) {
       ) : (
         <div className="space-y-6 pt-4">
           {comments.map((item, index) => {
-            // Cek Wewenang Hapus (Apakah milik sendiri ATAU role Admin)
-            const isOwner =
+            const commentUserId = typeof item.userId === "object" ? item.userId?._id : item.userId;
+            const commentUsername = typeof item.userId === "object" ? item.userId?.username : undefined;
+            const commentFullName = typeof item.userId === "object" ? item.userId?.fullName : undefined;
+
+            const isOwner = Boolean(
               currentUser &&
-              (item.userId?._id === currentUser._id ||
-                item.userId?.username === currentUser.username ||
-                item.userId?.fullName === currentUser.fullName);
+                ((commentUserId && currentUser._id && String(commentUserId) === String(currentUser._id)) ||
+                 (commentUsername && currentUser.username && commentUsername === currentUser.username) ||
+                 (commentFullName && currentUser.fullName && commentFullName === currentUser.fullName))
+            );
             const canDelete = isOwner || isAdmin;
 
             return (
@@ -228,6 +229,11 @@ export function CommentSection({ newsId }: CommentSectionProps) {
                         <span className="text-sm font-semibold text-foreground">
                           {item.userId?.fullName || item.userId?.username || "Pengguna"}
                         </span>
+                        {isOwner && (
+                          <span className="text-[10px] font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
+                            Anda
+                          </span>
+                        )}
                         <span className="text-xs text-muted-foreground">•</span>
                         <span className="text-xs text-muted-foreground">
                           {formatDate(item.createdAt)}
@@ -239,7 +245,7 @@ export function CommentSection({ newsId }: CommentSectionProps) {
                     </div>
                   </div>
 
-                  {/* POPUP TITIK TIGA HANYA JIKA PUNYA HAK HAPUS */}
+                  {/* POPUP TITIK TIGA HANYA JIKA PUNYA HAK HAPUS (Milik Sendiri / Admin) */}
                   {canDelete && (
                     <div className="relative" ref={activeMenuId === item._id ? menuRef : null}>
                       <button
@@ -252,11 +258,19 @@ export function CommentSection({ newsId }: CommentSectionProps) {
 
                       {/* Menu Popover Dropdown */}
                       {activeMenuId === item._id && (
-                        <div className="absolute right-0 mt-1 w-40 rounded-xl bg-card border shadow-lg py-1 z-20 animate-in fade-in zoom-in-95">
+                        <div className="absolute right-0 mt-1 w-40 rounded-xl bg-card border border-border shadow-lg py-1 z-20 animate-in fade-in zoom-in-95">
                           <button
                             onClick={() => {
                               setActiveMenuId(null);
-                              setConfirmDeleteId(item._id);
+                              toast.confirm({
+                                title: "Hapus Komentar?",
+                                message: "Apakah Anda yakin ingin menghapus komentar ini? Tindakan ini tidak dapat dibatalkan.",
+                                variant: "destructive",
+                                confirmText: "Ya, Hapus",
+                                cancelText: "Batal",
+                                icon: <Trash2 className="w-6 h-6 text-destructive" />,
+                                onConfirm: () => handleDeleteComment(item._id),
+                              });
                             }}
                             className="w-full text-left px-3.5 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-2 cursor-pointer"
                           >
@@ -275,46 +289,7 @@ export function CommentSection({ newsId }: CommentSectionProps) {
           })}
         </div>
       )}
-
-      {/* MODAL DIALOG KONFIRMASI HAPUS */}
-      {confirmDeleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-card border rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center gap-3 text-destructive">
-              <div className="p-2.5 rounded-full bg-destructive/10">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <h4 className="font-bold text-lg text-foreground">Hapus Komentar?</h4>
-            </div>
-
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Apakah Anda yakin ingin menghapus komentar ini? Tindakan ini tidak dapat dibatalkan.
-            </p>
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setConfirmDeleteId(null)}
-                disabled={deleting}
-                className="rounded-full text-xs"
-              >
-                Batal
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleDeleteComment(confirmDeleteId)}
-                disabled={deleting}
-                className="rounded-full text-xs gap-1.5"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                {deleting ? "Menghapus..." : "Ya, Hapus"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
+

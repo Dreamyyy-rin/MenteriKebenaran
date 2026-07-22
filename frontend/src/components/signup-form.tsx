@@ -6,6 +6,7 @@ import { useNavigate } from "react-router"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { toast } from "@/components/ui/toast"
 import {
   Form,
   FormControl,
@@ -51,14 +52,14 @@ export function SignupForm({
       const data = await response.json()
 
       if (response.ok) {
-        alert("Pendaftaran Sukses! Silakan login.")
+        toast.success("Pendaftaran Sukses!", "Silakan login dengan akun baru Anda.")
         navigate("/login")
       } else {
-        alert("Gagal Daftar: " + (data.error || "Terjadi kesalahan"))
+        toast.error("Gagal Mendaftar", data.error || "Terjadi kesalahan saat pendaftaran.")
       }
     } catch (error) {
       console.error("Fetch error:", error)
-      alert("Koneksi ke server gagal! Pastikan backend sudah menyala.")
+      toast.error("Koneksi Server Gagal", "Pastikan backend server sudah menyala.")
     }
   }
 

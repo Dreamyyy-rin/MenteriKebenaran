@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import {
   LayoutDashboard,
   FileText,
@@ -15,8 +15,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { ArticleCard } from "@/features/article/components/ArticleCard";
+import { toast } from "@/components/ui/toast";
 import type { NewsArticle, NewsResponse } from "@/types/news";
 
 export default function DashboardPage() {
@@ -45,7 +45,7 @@ export default function DashboardPage() {
     const storedUser = localStorage.getItem("user");
 
     if (!storedToken || !storedUser) {
-      alert("Silakan login terlebih dahulu untuk mengakses Dashboard.");
+      toast.error("Akses Ditolak", "Silakan login terlebih dahulu untuk mengakses Dashboard.");
       navigate("/login");
       return;
     }
@@ -102,7 +102,7 @@ export default function DashboardPage() {
   async function handleSubmitArticle(e: React.FormEvent) {
     e.preventDefault();
     if (!formTitle.trim() || !formContent.trim()) {
-      alert("Judul dan Isi Artikel wajib diisi!");
+      toast.warning("Form Belum Lengkap", "Judul dan Isi Artikel wajib diisi!");
       return;
     }
 
@@ -135,16 +135,19 @@ export default function DashboardPage() {
       const data = await res.json();
 
       if (res.ok) {
-        alert(editingId ? "Berhasil memperbarui artikel!" : "Berhasil menerbitkan artikel baru!");
+        toast.success(
+          editingId ? "Berhasil Memperbarui!" : "Berhasil Menerbitkan!",
+          editingId ? "Artikel berhasil diperbarui di database." : "Artikel baru telah diterbitkan."
+        );
         resetForm();
         await fetchArticles();
         setActiveTab("my-articles");
       } else {
-        alert("Gagal menyimpan: " + (data.error || "Terjadi kesalahan"));
+        toast.error("Gagal Menyimpan", data.error || "Terjadi kesalahan saat menyimpan artikel.");
       }
     } catch (error) {
       console.error(error);
-      alert("Terjadi kesalahan jaringan.");
+      toast.error("Terjadi Kesalahan Jaringan", "Gagal terhubung ke server database.");
     } finally {
       setSubmitting(false);
     }
@@ -152,28 +155,36 @@ export default function DashboardPage() {
 
   // Hapus Berita
   async function handleDeleteArticle(id: string) {
-    if (!confirm("Apakah Anda yakin ingin menghapus berita ini?")) return;
     if (!token) return;
 
-    try {
-      const res = await fetch(`http://localhost:5000/api/news/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    toast.confirm({
+      title: "Hapus Artikel?",
+      message: "Apakah Anda yakin ingin menghapus postingan ini? Tindakan ini tidak dapat dibatalkan.",
+      variant: "destructive",
+      confirmText: "Hapus Postingan",
+      cancelText: "Batal",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`http://localhost:5000/api/news/${id}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
-      if (res.ok) {
-        alert("Berita berhasil dihapus!");
-        await fetchArticles();
-      } else {
-        const data = await res.json();
-        alert("Gagal menghapus: " + (data.error || "Akses ditolak"));
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Gagal menghapus berita.");
-    }
+          if (res.ok) {
+            toast.success("Berhasil Dihapus", "Artikel telah dihapus dari database.");
+            await fetchArticles();
+          } else {
+            const data = await res.json();
+            toast.error("Gagal Menghapus", data.error || "Akses ditolak.");
+          }
+        } catch (error) {
+          console.error(error);
+          toast.error("Error", "Gagal menghapus berita.");
+        }
+      },
+    });
   }
 
   // Edit Berita

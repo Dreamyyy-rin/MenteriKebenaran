@@ -1,13 +1,19 @@
 import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";
+import { Clock } from "lucide-react";
+import { formatTime as defaultFormatTime } from "@/lib/utils";
 import type { NewsArticle } from "@/types/news";
 
 interface ArticleCardProps {
   news: NewsArticle;
   formatDate: (dateString: string) => string;
+  formatTime?: (dateString: string) => string;
 }
 
-export function ArticleCard({ news, formatDate }: ArticleCardProps) {
+export function ArticleCard({ news, formatDate, formatTime }: ArticleCardProps) {
+  const timeFormatter = formatTime || defaultFormatTime;
+  const realTime = timeFormatter(news.createdAt);
+
   return (
     <Link to={`/news/${news.slug}`} className="group block">
       <div className="space-y-3.5">
@@ -30,15 +36,23 @@ export function ArticleCard({ news, formatDate }: ArticleCardProps) {
           <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed font-normal">
             {news.artikel.replace(/<[^>]*>?/gm, '')}
           </p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1 flex-wrap">
             <span className="font-semibold text-foreground">{news.author?.fullName || "Admin"}</span>
             <span>•</span>
             <span>{formatDate(news.createdAt)}</span>
-            <span>•</span>
-            <span>⏱ {Math.ceil(news.artikel.length / 200)} min read</span>
+            {realTime && (
+              <>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-muted-foreground" />
+                  {realTime}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>
     </Link>
   );
 }
+
