@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, Newspaper } from "lucide-react";
 import { toast } from "sonner";
 
 interface UserProfile {
@@ -55,10 +55,11 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 h-16 flex items-center justify-between gap-4">
         
         {/* Left: Brand Logo */}
-        <Link to="/" className="font-extrabold text-2xl tracking-tight shrink-0 flex items-center gap-1.5 hover:scale-105 transition-transform duration-300">
-          <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Menteri</span>
-          <span className="text-foreground">Kebenaran</span>
-          <span className="text-primary text-3xl leading-none">.</span>
+        <Link to="/" className="flex items-center gap-2 group">
+          <Newspaper className="w-6 h-6 text-primary" />
+          <span className="text-xl font-bold tracking-tight text-foreground">
+            Menteri<span className="text-primary">Kebenaran</span>
+          </span>
         </Link>
 
         {/* Center: Simple Navigation Links */}
@@ -131,12 +132,12 @@ export function Navbar() {
           ) : (
             <div className="flex items-center gap-3">
               <Link to="/login">
-                <Button variant="ghost" className="rounded-full px-5 font-bold hover:bg-primary/10 hover:text-primary transition-colors">
-                  Login
+                <Button variant="ghost" className="font-medium text-muted-foreground hover:text-foreground">
+                  Masuk
                 </Button>
               </Link>
-              <Link to="/register">
-                <Button className="rounded-full px-6 font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all bg-gradient-to-r from-primary to-indigo-500 border-none">
+              <Link to="/signup">
+                <Button className="font-medium px-5">
                   Daftar
                 </Button>
               </Link>

@@ -71,14 +71,15 @@ export function LoginForm({
         <CardContent className="grid p-0 md:grid-cols-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 md:p-8 py-8 md:py-10">
+              <CardHeader className="space-y-2 text-center pb-6">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Selamat Datang Kembali
+            </h1>
+            <p className="text-sm text-muted-foreground font-medium">
+              Silakan masuk ke akun Anda untuk melanjutkan
+            </p>
+          </CardHeader>
               <FieldGroup>
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <h1 className="text-2xl font-bold">Welcome User</h1>
-                  <p className="text-balance text-muted-foreground">
-                    Login to your account
-                  </p>
-                </div>
-                
                 <FormField
                   control={form.control}
                   name="email"
@@ -119,7 +120,7 @@ export function LoginForm({
                   )}
                 />
 
-                <Button type="submit" size="lg" className="w-full mt-4 rounded-2xl h-14 font-extrabold text-lg shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-1 bg-gradient-to-r from-primary to-blue-500 border-none">Masuk ke Portal 🚀</Button>
+                <Button type="submit" size="lg" className="w-full mt-4 rounded-xl font-medium shadow-sm transition-all">Masuk</Button>
               <FieldDescription className="text-center">
                 Don&apos;t have an account? <a href="/register">Sign up</a>
               </FieldDescription>

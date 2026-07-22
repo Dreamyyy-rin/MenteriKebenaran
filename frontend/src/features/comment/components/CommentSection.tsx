@@ -409,10 +409,10 @@ export function CommentSection({ newsId }: CommentSectionProps) {
             </Avatar>
             <div className="flex-1 space-y-2">
               <textarea
-                placeholder="Tulis balasanmu..."
+                placeholder="Tulis balasan..."
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                className="min-h-[80px] w-full text-sm resize-none rounded-[1.5rem] bg-background border-border/50 p-4 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:outline-none transition-all shadow-sm"
+                className="min-h-[80px] w-full text-sm resize-none rounded-xl bg-background border border-input p-3 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:outline-none transition-all shadow-sm"
               />
               <div className="flex items-center gap-2 justify-end mt-3">
                 <Button
@@ -422,7 +422,7 @@ export function CommentSection({ newsId }: CommentSectionProps) {
                     setReplyingTo(null);
                     setReplyText("");
                   }}
-                  className="rounded-full px-5 text-muted-foreground hover:text-foreground"
+                  className="rounded-lg px-4 text-muted-foreground hover:text-foreground"
                 >
                   Batal
                 </Button>
@@ -430,7 +430,7 @@ export function CommentSection({ newsId }: CommentSectionProps) {
                   size="sm"
                   onClick={() => handleSubmitReply(item._id)}
                   disabled={submittingReply || !replyText.trim()}
-                  className="rounded-full px-6 bg-primary font-bold shadow-md hover:shadow-lg transition-all text-white"
+                  className="rounded-lg px-5 bg-primary font-medium shadow-sm transition-all text-primary-foreground"
                 >
                   {submittingReply ? "Membalas..." : "Balas"}
                 </Button>
@@ -451,8 +451,7 @@ export function CommentSection({ newsId }: CommentSectionProps) {
 
   return (
     <section className="pt-8 pb-16">
-      <div className="bg-card p-6 sm:p-8 rounded-[2.5rem] border-2 border-primary/10 shadow-lg relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full rounded-tr-[2.5rem] pointer-events-none"></div>
+      <div className="bg-card p-6 sm:p-8 rounded-2xl border border-border/50 shadow-sm relative">
         <div className="flex items-center justify-between border-b border-border/40 pb-4 relative z-10">
           <h3 className="text-2xl font-bold tracking-tight">
             Forum Diskusi <span className="text-muted-foreground text-lg font-medium">({rootComments.length})</span>
@@ -470,22 +469,18 @@ export function CommentSection({ newsId }: CommentSectionProps) {
             </Avatar>
             <div className="flex-1 space-y-3">
               <textarea
-                placeholder="Tulis komentar kamu di sini..."
+                placeholder="Tulis komentar Anda di sini..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="min-h-[100px] w-full resize-none bg-muted/40 rounded-[1.5rem] p-4 text-base focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary/30 border-border/50 transition-all focus-visible:bg-background"
+                className="min-h-[100px] w-full resize-none bg-background rounded-xl p-4 text-sm border border-input focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-primary/40 transition-all shadow-sm"
               />
               <div className="flex justify-end mt-4">
                 <Button
                   type="submit"
                   disabled={submitting || !newComment.trim()}
-                  className="rounded-full px-8 py-6 font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all bg-gradient-to-r from-primary to-blue-500 border-none text-white gap-2"
+                  className="rounded-lg px-6 font-medium shadow-sm transition-all bg-primary text-primary-foreground"
                 >
-                  {submitting ? (
-                    "Mengirim..."
-                  ) : (
-                    <>Kirim Komentar 🚀</>
-                  )}
+                  {submitting ? "Mengirim..." : "Kirim Komentar"}
                 </Button>
               </div>
             </div>
@@ -530,38 +525,38 @@ export function CommentSection({ newsId }: CommentSectionProps) {
       {/* Delete confirmation modal */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-card border-2 border-destructive/20 rounded-[2rem] p-6 max-w-sm w-full shadow-2xl space-y-5 animate-in zoom-in-95">
-            <div className="flex items-center gap-4 text-destructive">
-              <div className="p-3 rounded-full bg-destructive/10">
-                <AlertTriangle className="w-7 h-7" />
+          <div className="bg-card border border-border/50 rounded-xl p-6 max-w-sm w-full shadow-lg space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center gap-3 text-destructive">
+              <div className="p-2 rounded-full bg-destructive/10">
+                <AlertTriangle className="w-5 h-5" />
               </div>
-              <h4 className="font-extrabold text-xl text-foreground">Hapus Komentar?</h4>
+              <h4 className="font-semibold text-lg text-foreground">Hapus Komentar?</h4>
             </div>
 
-            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Apakah Anda yakin ingin menghapus komentar ini? Semua balasan pada
-              komentar ini juga akan terhapus selamanya.
+              komentar ini juga akan terhapus.
             </p>
 
-            <div className="flex items-center justify-end gap-3 pt-4">
+            <div className="flex items-center justify-end gap-2 pt-2">
               <Button
                 variant="outline"
-                size="default"
+                size="sm"
                 onClick={() => setConfirmDeleteId(null)}
                 disabled={deleting}
-                className="rounded-full px-6 font-bold border-2 border-destructive text-destructive hover:bg-destructive/10"
+                className="rounded-md px-4 font-medium"
               >
                 Batal
               </Button>
               <Button
                 variant="destructive"
-                size="default"
+                size="sm"
                 onClick={() => handleDeleteComment(confirmDeleteId)}
                 disabled={deleting}
-                className="rounded-full px-6 font-bold shadow-md hover:shadow-lg transition-all gap-2"
+                className="rounded-md px-4 font-medium shadow-sm gap-2"
               >
                 <Trash2 className="w-4 h-4" />
-                {deleting ? "Menghapus..." : "Ya, Hapus!"}
+                {deleting ? "Menghapus..." : "Ya, Hapus"}
               </Button>
             </div>
           </div>

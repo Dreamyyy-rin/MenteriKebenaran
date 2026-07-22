@@ -9,52 +9,44 @@ interface HeroArticleProps {
 
 export function HeroArticle({ article, formatDate }: HeroArticleProps) {
   return (
-    <Link to={`/news/${article.slug}`} className="group block">
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-card border-2 border-border/40 shadow-sm hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-500">
-        <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
-          <div className="lg:col-span-7 aspect-[16/10] w-full overflow-hidden relative">
-            <img
-              src={article.foto || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000"}
-              alt={article.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
-            />
+    <Link to={`/news/${article.slug}`} className="group block mb-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center border-b border-border pb-10">
+        <div className="w-full aspect-video overflow-hidden bg-muted rounded-2xl">
+          <img
+            src={article.foto || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000"}
+            alt={article.title}
+            className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90"
+          />
+        </div>
+
+        <div className="flex flex-col justify-center py-4">
+          <div className="mb-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Headline News
           </div>
 
-          <div className="lg:col-span-5 flex flex-col justify-center p-8 lg:p-12">
-            <div className="mb-4">
-              <span className="text-xs font-extrabold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1.5 rounded-full">
-                Headline News
-              </span>
-            </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground group-hover:underline decoration-primary mb-6">
+            {article.title}
+          </h1>
 
-            <h1 className="text-2xl sm:text-3xl lg:text-3xl font-bold tracking-tight leading-snug text-foreground group-hover:text-primary transition-colors">
-              {article.title}
-            </h1>
+          <p className="text-muted-foreground text-lg leading-relaxed line-clamp-3 mb-8">
+            {article.artikel.replace(/<[^>]*>?/gm, '')}
+          </p>
 
-            <p className="text-muted-foreground text-sm md:text-base leading-relaxed line-clamp-3 font-normal">
-              {article.artikel.replace(/<[^>]*>?/gm, '')}
-            </p>
-
-            <div className="pt-4 border-t border-border/40 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-muted text-foreground text-xs font-medium">
-                    {article.author?.fullName?.charAt(0) || "A"}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-xs font-medium text-foreground leading-none">
-                    {article.author?.fullName || "Admin"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    {formatDate(article.createdAt)}
-                  </p>
-                </div>
+          <div className="flex items-center gap-4">
+            <Avatar className="h-10 w-10 rounded-none">
+              <AvatarFallback className="bg-muted text-foreground text-sm font-semibold rounded-none">
+                {article.author?.fullName?.charAt(0) || "A"}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {article.author?.fullName || "Admin"}
+              </p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                <span>{formatDate(article.createdAt)}</span>
+                <span>•</span>
+                <span>{Math.ceil(article.artikel.length / 200)} min read</span>
               </div>
-
-              <span className="text-xs text-muted-foreground font-normal">
-                {Math.ceil(article.artikel.length / 200)} min read
-              </span>
             </div>
           </div>
         </div>
