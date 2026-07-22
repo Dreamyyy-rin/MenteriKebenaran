@@ -89,10 +89,14 @@ export default function DashboardPage() {
       a.author?.fullName === currentUser?.fullName
   );
 
-  // Statistik Real dari Database Backend
-  const totalViews = articles.reduce((acc, curr) => acc + (curr.views || 0), 0);
-  const totalBerita = articles.filter((a) => a.category === "Berita").length;
-  const totalArtikel = articles.filter((a) => a.category === "Artikel").length;
+  // Statistik Real dari Database Backend (Personalized for User / Platform for Admin)
+  const targetArticles = isAdmin ? articles : myArticles;
+  const totalViews = targetArticles.reduce((acc, curr) => acc + (curr.views || 0), 0);
+  const publishedCount = targetArticles.length;
+  const totalBerita = targetArticles.filter((a) => a.category === "Berita").length;
+  const totalArtikel = targetArticles.filter((a) => a.category === "Artikel").length;
+  const avgViews = publishedCount > 0 ? Math.round(totalViews / publishedCount) : 0;
+  const topArticles = targetArticles.slice().sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3);
 
   // Submit Handler (Create atau Update News)
   async function handleSubmitArticle(e: React.FormEvent) {
@@ -296,11 +300,13 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight">Overview</h1>
               <p className="text-muted-foreground text-sm mt-1">
-                Here is what's happening with your articles and platform today.
+                {isAdmin
+                  ? "Ringkasan statistik platform dan seluruh publikasi berita."
+                  : "Ringkasan statistik performa artikel publikasi Anda."}
               </p>
             </div>
 
-            {/* 4 Kartu Statistik Backend */}
+            {/* 4 Kartu Statistik Backend (Personalized) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="p-5 rounded-2xl border bg-card/60 space-y-2">
                 <div className="flex items-center justify-between text-muted-foreground">
@@ -310,7 +316,7 @@ export default function DashboardPage() {
                 <div className="flex items-baseline justify-between">
                   <span className="text-2xl font-bold">{totalViews.toLocaleString()}</span>
                   <span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5">
-                    <TrendingUp className="w-3 h-3" /> +12.5%
+                    <TrendingUp className="w-3 h-3" /> {avgViews} /post
                   </span>
                 </div>
               </div>
@@ -321,8 +327,8 @@ export default function DashboardPage() {
                   <FileText className="w-4 h-4" />
                 </div>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-2xl font-bold">{articles.length}</span>
-                  <span className="text-xs font-medium text-emerald-600">+2 new</span>
+                  <span className="text-2xl font-bold">{publishedCount}</span>
+                  <span className="text-xs font-medium text-emerald-600">{publishedCount} terbit</span>
                 </div>
               </div>
 
@@ -354,11 +360,11 @@ export default function DashboardPage() {
               <h2 className="text-xl font-bold">Top Performing Articles</h2>
               {loading ? (
                 <p className="text-sm text-muted-foreground animate-pulse">Memuat berita...</p>
-              ) : articles.length === 0 ? (
+              ) : topArticles.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Belum ada artikel yang diterbitkan.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {articles.slice(0, 3).map((item) => (
+                  {topArticles.map((item) => (
                     <ArticleCard key={item._id} news={item} formatDate={formatDate} />
                   ))}
                 </div>

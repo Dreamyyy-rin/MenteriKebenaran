@@ -103,18 +103,16 @@ export function Navbar() {
 
                   {/* Menu Options */}
                   <div className="py-1">
-                    {isAdmin && (
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          navigate("/dashboard");
-                        }}
-                        className="w-full text-left px-4 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors flex items-center gap-2.5 cursor-pointer"
-                      >
-                        <LayoutDashboard className="w-4 h-4 text-muted-foreground" />
-                        Dashboard
-                      </button>
-                    )}
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        navigate("/dashboard");
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-muted-foreground" />
+                      Dashboard
+                    </button>
 
                     <button
                       onClick={handleLogout}

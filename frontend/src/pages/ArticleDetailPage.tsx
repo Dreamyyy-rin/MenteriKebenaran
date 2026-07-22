@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -13,10 +13,13 @@ export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<NewsArticle | null>(null);
   const [loading, setLoading] = useState(true);
+  const fetchedRef = useRef<string | null>(null);
 
   useEffect(() => {
     async function fetchArticle() {
-      if (!slug) return;
+      if (!slug || fetchedRef.current === slug) return;
+      fetchedRef.current = slug;
+
       try {
         const res = await fetch(`http://localhost:5000/api/news/slug/${slug}`);
         if (res.ok) {
