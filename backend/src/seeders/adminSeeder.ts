@@ -21,14 +21,14 @@ const ADMIN_DATA = {
 async function seedAdmin() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    console.error("❌ MONGODB_URI is not set in .env");
+    console.error("MONGODB_URI is not set in .env");
     process.exit(1);
   }
 
-  console.log("🔌 Connecting to database...");
+  console.log("Menghubungkan ke database...");
   console.log("   URI:", uri.substring(0, 40) + "...");
   await mongoose.connect(uri);
-  console.log("✅ Connected to database");
+  console.log("Berhasil terhubung ke database");
 
   try {
     // Check if admin already exists
@@ -37,10 +37,10 @@ async function seedAdmin() {
     });
 
     if (existing) {
-      console.log(`⚠️  Admin already exists:`);
-      console.log(`   - Username : ${existing.username}`);
-      console.log(`   - Email    : ${existing.email}`);
-      console.log(`   - Role     : ${existing.role}`);
+      console.log("Admin sudah ada:");
+      console.log("   - Username : " + existing.username);
+      console.log("   - Email    : " + existing.email);
+      console.log("   - Role     : " + existing.role);
       return;
     }
 
@@ -53,21 +53,25 @@ async function seedAdmin() {
       password: hashedPassword,
     });
 
-    console.log("🎉 Admin account created successfully!");
+    console.log("Akun admin berhasil dibuat!");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log(`   Full Name : ${admin.fullName}`);
-    console.log(`   Username  : ${admin.username}`);
-    console.log(`   Email     : ${admin.email}`);
-    console.log(`   Password  : ${ADMIN_DATA.password}  ← ganti setelah login!`);
-    console.log(`   Role      : ${admin.role}`);
+    console.log("   Nama Lengkap : " + admin.fullName);
+    console.log("   Username    : " + admin.username);
+    console.log("   Email       : " + admin.email);
+    console.log("   Password     : " + ADMIN_DATA.password + "  ← ubah setelah login!");
+    console.log("   Role         : " + admin.role);
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("");
+    console.log("Catatan: Untuk menjadikan pengguna menjadi writer,");
+    console.log("login sebagai admin dan gunakan endpoint:");
+    console.log("PUT /api/users/role");
   } finally {
     await mongoose.disconnect();
-    console.log("🔌 Disconnected from database");
+    console.log("Berhasil disconnect dari database");
   }
 }
 
 seedAdmin().catch((err) => {
-  console.error("❌ Seeder failed:", err);
+  console.error("Seeder gagal:", err);
   process.exit(1);
 });
