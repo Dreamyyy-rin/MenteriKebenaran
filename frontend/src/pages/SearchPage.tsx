@@ -31,8 +31,13 @@ export default function SearchPage() {
       setLoading(true);
       try {
         const res = await api.getNews({ search: query });
-        if (res.sukses && Array.isArray(res.data)) {
-          setResults(res.data);
+        if (res.sukses) {
+          const list = Array.isArray(res.data)
+            ? res.data
+            : (res.data && Array.isArray((res.data as any).data))
+            ? (res.data as any).data
+            : [];
+          setResults(list);
         } else if (Array.isArray(res as any)) {
           setResults(res as any);
         } else {

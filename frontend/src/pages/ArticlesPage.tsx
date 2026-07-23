@@ -39,8 +39,13 @@ export default function ArticlesPage() {
           search: searchTerm.trim() || undefined,
         });
 
-        if (res.sukses && Array.isArray(res.data)) {
-          setArticlesList(res.data);
+        if (res.sukses) {
+          const list = Array.isArray(res.data)
+            ? res.data
+            : (res.data && Array.isArray((res.data as any).data))
+            ? (res.data as any).data
+            : [];
+          setArticlesList(list);
         } else if (Array.isArray(res as any)) {
           setArticlesList(res as any);
         } else {

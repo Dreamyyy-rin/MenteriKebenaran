@@ -17,6 +17,8 @@ import {
   XCircle,
   ThumbsUp,
   Bookmark,
+  UserCog,
+  KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArticleCard } from "@/features/article/components/ArticleCard";
 import { toast } from "@/components/ui/toast";
 import type { Category, NewsArticle, UserProfile } from "@/types/news";
-import { api, getCurrentUser, getToken } from "@/lib/api";
+import { api, getCurrentUser, getToken, setCurrentUser } from "@/lib/api";
 
 type TabType =
   | "overview"
@@ -34,7 +36,9 @@ type TabType =
   | "categories"
   | "users-role"
   | "delete-requests"
-  | "saved-articles";
+  | "saved-articles"
+  | "clapped-articles"
+  | "profile-settings";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -53,6 +57,8 @@ export default function DashboardPage() {
   const [userList, setUserList] = useState<UserProfile[]>([]);
   const [deleteRequestsList, setDeleteRequestsList] = useState<NewsArticle[]>([]);
   const [savedArticles, setSavedArticles] = useState<NewsArticle[]>([]);
+  const [clappedArticles, setClappedArticles] = useState<NewsArticle[]>([]);
+  const [myArticlesState, setMyArticlesState] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Form State untuk Write/Edit Article
@@ -63,6 +69,16 @@ export default function DashboardPage() {
   const [formFoto, setFormFoto] = useState("");
   const [formTags, setFormTags] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Form State untuk Update Profile
+  const [profileFullName, setProfileFullName] = useState(currentUser?.fullName || "");
+  const [profileUsername, setProfileUsername] = useState(currentUser?.username || "");
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+
+  // Form State untuk Ganti Password
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Modal State untuk Category Create/Edit
   const [catModalOpen, setCatModalOpen] = useState(false);
@@ -100,40 +116,78 @@ export default function DashboardPage() {
     try {
       // 1. Fetch Articles
       const resNews = await api.getNews({ limit: 100 });
-      if (resNews.sukses && Array.isArray(resNews.data)) {
-        setArticles(resNews.data);
+      if (resNews.sukses) {
+        const list = Array.isArray(resNews.data)
+          ? resNews.data
+          : (resNews.data && Array.isArray((resNews.data as any).data))
+          ? (resNews.data as any).data
+          : [];
+        setArticles(list);
       } else if (Array.isArray(resNews as any)) {
         setArticles(resNews as any);
       }
 
-      // 2. Fetch Categories
+      // 2. Fetch My Articles directly from /api/news/my/list
+      if (isWriter) {
+        const resMy = await api.getMyNews({ limit: 100 });
+        if (resMy.sukses) {
+          const listMy = Array.isArray(resMy.data)
+            ? resMy.data
+            : (resMy.data && Array.isArray((resMy.data as any).data))
+            ? (resMy.data as any).data
+            : [];
+          setMyArticlesState(listMy);
+        }
+      }
+
+      // 3. Fetch Categories
       const resCat = await api.getCategories(isAdmin);
       if (resCat.sukses && Array.isArray(resCat.data)) {
         setCategories(resCat.data);
       }
 
-      // 3. Admin specific: Users & Delete Requests
+      // 4. Admin specific: Users & Delete Requests
       if (isAdmin) {
         const resUsers = await api.getUsers({ limit: 100 });
-        if (resUsers.sukses && Array.isArray(resUsers.data)) {
-          setUserList(resUsers.data);
+        if (resUsers.sukses) {
+          const listUsers = Array.isArray(resUsers.data)
+            ? resUsers.data
+            : (resUsers.data && Array.isArray((resUsers.data as any).data))
+            ? (resUsers.data as any).data
+            : [];
+          setUserList(listUsers);
         }
 
         const resDelReqs = await api.getAdminDeleteRequests({ limit: 100 });
-        if (resDelReqs.sukses && Array.isArray(resDelReqs.data)) {
-          setDeleteRequestsList(resDelReqs.data);
+        if (resDelReqs.sukses) {
+          const listDel = Array.isArray(resDelReqs.data)
+            ? resDelReqs.data
+            : (resDelReqs.data && Array.isArray((resDelReqs.data as any).data))
+            ? (resDelReqs.data as any).data
+            : [];
+          setDeleteRequestsList(listDel);
         }
       } else if (isWriter) {
         const resMyDelReqs = await api.getMyDeleteRequests({ limit: 100 });
-        if (resMyDelReqs.sukses && Array.isArray(resMyDelReqs.data)) {
-          setDeleteRequestsList(resMyDelReqs.data);
+        if (resMyDelReqs.sukses) {
+          const listMyDel = Array.isArray(resMyDelReqs.data)
+            ? resMyDelReqs.data
+            : (resMyDelReqs.data && Array.isArray((resMyDelReqs.data as any).data))
+            ? (resMyDelReqs.data as any).data
+            : [];
+          setDeleteRequestsList(listMyDel);
         }
       }
 
-      // 4. Saved articles for user
+      // 5. Saved & Clapped articles for user
       const resSaved = await api.getSavedNews();
       if (resSaved.sukses && Array.isArray(resSaved.data)) {
         setSavedArticles(resSaved.data);
+      }
+
+      const resClapped = await api.getClappedNews();
+      if (resClapped.sukses && Array.isArray(resClapped.data)) {
+        setClappedArticles(resClapped.data);
       }
     } catch (e) {
       console.error("Error loading dashboard data:", e);
@@ -148,25 +202,115 @@ export default function DashboardPage() {
     }
   }, [token, isAdmin, isWriter]);
 
-  // Personalized Articles
-  const myArticles = articles.filter(
-    (a) =>
-      a.author?._id === currentUser?._id ||
-      a.author?.username === currentUser?.username ||
-      a.author?.fullName === currentUser?.fullName
-  );
+  // Robust Author Matching Fallback
+  const fallbackMyArticles = articles.filter((a) => {
+    if (!currentUser) return false;
+    const authorId = typeof a.author === "object" ? a.author?._id : a.author;
+    const authorUsername = typeof a.author === "object" ? a.author?.username : undefined;
+    const authorFullName = typeof a.author === "object" ? a.author?.fullName : undefined;
+
+    return (
+      (authorId && currentUser._id && String(authorId) === String(currentUser._id)) ||
+      (authorUsername && currentUser.username && authorUsername === currentUser.username) ||
+      (authorFullName && currentUser.fullName && authorFullName === currentUser.fullName)
+    );
+  });
+
+  const myArticles = myArticlesState.length > 0 ? myArticlesState : fallbackMyArticles;
 
   const targetArticles = isAdmin ? articles : myArticles;
   const totalViews = targetArticles.reduce((acc, curr) => acc + (curr.views || 0), 0);
-  const totalClaps = targetArticles.reduce((acc, curr) => acc + (curr.clapsCount || 0), 0);
+  const totalClaps = targetArticles.reduce((acc, curr) => acc + (curr.clapCount ?? curr.clapsCount ?? 0), 0);
   const publishedCount = targetArticles.length;
   const topArticles = targetArticles.slice().sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3);
+
+  // Profile Update Handler
+  async function handleUpdateProfile(e: React.FormEvent) {
+    e.preventDefault();
+    if (!profileFullName.trim() && !profileUsername.trim()) {
+      toast.warning("Form Kosong", "Isi nama lengkap atau username yang ingin diperbarui.");
+      return;
+    }
+
+    setUpdatingProfile(true);
+    try {
+      const res = await api.updateProfile({
+        fullName: profileFullName.trim() || undefined,
+        username: profileUsername.trim() || undefined,
+      });
+
+      if (res.sukses && res.data) {
+        setCurrentUser(res.data);
+        toast.success("Profil Diperbarui!", "Data profil Anda berhasil diperbarui di database.");
+      } else {
+        toast.error("Gagal Memperbarui Profil", res.pesan || "Terjadi kesalahan.");
+      }
+    } catch (e: any) {
+      toast.error("Error", e.message || "Gagal memperbarui profil.");
+    } finally {
+      setUpdatingProfile(false);
+    }
+  }
+
+  // Change Password Handler
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!currentPassword || !newPassword) {
+      toast.warning("Form Belum Lengkap", "Password lama dan password baru wajib diisi.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.warning("Password Terlalu Pendek", "Password baru minimal 8 karakter.");
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const res = await api.changePassword({
+        currentPassword,
+        newPassword,
+      });
+
+      if (res.sukses) {
+        toast.success("Password Diubah!", "Password Anda berhasil diperbarui.");
+        setCurrentPassword("");
+        setNewPassword("");
+      } else {
+        toast.error("Gagal Ubah Password", res.pesan || "Password saat ini tidak valid.");
+      }
+    } catch (e: any) {
+      toast.error("Error", e.message || "Gagal memperbarui password.");
+    } finally {
+      setChangingPassword(false);
+    }
+  }
 
   // Submit Handler: Write / Edit News
   async function handleSubmitArticle(e: React.FormEvent) {
     e.preventDefault();
-    if (!formTitle.trim() || !formContent.trim()) {
-      toast.warning("Form Belum Lengkap", "Judul dan Isi Artikel wajib diisi!");
+
+    if (!isWriter) {
+      toast.error(
+        "Akses Ditolak",
+        "Role Anda saat ini adalah 'user'. Minta Admin untuk mengubah role Anda menjadi 'writer' di menu User & Role terlebih dahulu."
+      );
+      return;
+    }
+
+    if (!formTitle.trim()) {
+      toast.warning("Form Belum Lengkap", "Judul berita wajib diisi!");
+      return;
+    }
+    if (formTitle.trim().length < 5) {
+      toast.warning("Judul Terlalu Pendek", "Judul berita minimal 5 karakter.");
+      return;
+    }
+    if (!formContent.trim()) {
+      toast.warning("Form Belum Lengkap", "Isi artikel berita wajib diisi!");
+      return;
+    }
+    if (formContent.trim().length < 20) {
+      toast.warning("Isi Artikel Terlalu Pendek", "Isi artikel berita minimal 20 karakter.");
       return;
     }
 
@@ -178,10 +322,10 @@ export default function DashboardPage() {
         .filter((t) => t.length > 0);
 
       const payload = {
-        title: formTitle,
-        artikel: formContent,
+        title: formTitle.trim(),
+        artikel: formContent.trim(),
         category: formCategory || undefined,
-        foto: formFoto || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000",
+        foto: formFoto.trim() || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000",
         tags: tagsArray,
       };
 
@@ -198,7 +342,21 @@ export default function DashboardPage() {
         await loadInitialData();
         setActiveTab("my-articles");
       } else {
-        toast.error("Gagal Menyimpan", res.pesan || "Terjadi kesalahan saat menyimpan artikel.");
+        let detailError = res.pesan || "Terjadi kesalahan saat menyimpan artikel.";
+        if (res.kesalahan && typeof res.kesalahan === "object") {
+          const errorMessages: string[] = [];
+          Object.entries(res.kesalahan).forEach(([field, value]: [string, any]) => {
+            if (value?._errors && Array.isArray(value._errors)) {
+              errorMessages.push(`${field}: ${value._errors.join(", ")}`);
+            } else if (typeof value === "string") {
+              errorMessages.push(value);
+            }
+          });
+          if (errorMessages.length > 0) {
+            detailError = errorMessages.join(" | ");
+          }
+        }
+        toast.error("Gagal Menyimpan", detailError);
       }
     } catch (error: any) {
       toast.error("Terjadi Kesalahan", error.message || "Gagal terhubung ke server database.");
@@ -341,7 +499,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Form helpers
   function handleStartEdit(article: NewsArticle) {
     setEditingId(article._id);
     setFormTitle(article.title);
@@ -448,6 +605,30 @@ export default function DashboardPage() {
             >
               <Bookmark className="w-4 h-4" />
               Tersimpan ({savedArticles.length})
+            </button>
+
+            <button
+              onClick={() => setActiveTab("clapped-articles")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === "clapped-articles"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              <ThumbsUp className="w-4 h-4" />
+              Di-Clap Saya ({clappedArticles.length})
+            </button>
+
+            <button
+              onClick={() => setActiveTab("profile-settings")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === "profile-settings"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              <UserCog className="w-4 h-4" />
+              Profil & Keamanan
             </button>
           </div>
 
@@ -680,6 +861,84 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* PROFILE SETTINGS & CHANGE PASSWORD TAB */}
+            {activeTab === "profile-settings" && (
+              <div className="space-y-8 max-w-2xl">
+                <div className="border-b border-border/60 pb-4">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Profil & Keamanan</h1>
+                  <p className="text-muted-foreground text-xs sm:text-sm mt-1">
+                    Kelola identitas diri dan kata sandi akun Anda.
+                  </p>
+                </div>
+
+                {/* Form Update Profile */}
+                <form onSubmit={handleUpdateProfile} className="border border-border/60 rounded-2xl p-6 bg-card/60 space-y-4 shadow-sm">
+                  <h3 className="font-bold text-sm flex items-center gap-2 border-b border-border/40 pb-3">
+                    <UserCog className="w-4 h-4 text-primary" /> Pengaturan Profil
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground">Nama Lengkap</label>
+                      <Input
+                        value={profileFullName}
+                        onChange={(e) => setProfileFullName(e.target.value)}
+                        placeholder="Nama Lengkap..."
+                        className="mt-1 h-10 text-xs rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground">Username</label>
+                      <Input
+                        value={profileUsername}
+                        onChange={(e) => setProfileUsername(e.target.value)}
+                        placeholder="Username..."
+                        className="mt-1 h-10 text-xs rounded-xl"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end pt-2">
+                    <Button size="sm" type="submit" disabled={updatingProfile} className="text-xs rounded-xl font-medium px-4">
+                      {updatingProfile ? "Memperbarui..." : "Simpan Profil"}
+                    </Button>
+                  </div>
+                </form>
+
+                {/* Form Change Password */}
+                <form onSubmit={handleChangePassword} className="border border-border/60 rounded-2xl p-6 bg-card/60 space-y-4 shadow-sm">
+                  <h3 className="font-bold text-sm flex items-center gap-2 border-b border-border/40 pb-3">
+                    <KeyRound className="w-4 h-4 text-primary" /> Ganti Kata Sandi
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground">Kata Sandi Saat Ini</label>
+                      <Input
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="mt-1 h-10 text-xs rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground">Kata Sandi Baru</label>
+                      <Input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="•••••••• (min 8 karakter, huruf besar, kecil & angka)"
+                        className="mt-1 h-10 text-xs rounded-xl"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end pt-2">
+                    <Button size="sm" type="submit" disabled={changingPassword} className="text-xs rounded-xl font-medium px-4">
+                      {changingPassword ? "Memproses..." : "Ubah Kata Sandi"}
+                    </Button>
+                  </div>
+                </form>
               </div>
             )}
 
@@ -1009,6 +1268,31 @@ export default function DashboardPage() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {savedArticles.map((item) => (
+                      <ArticleCard key={item._id} news={item} formatDate={formatDate} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* CLAPPED ARTICLES TAB */}
+            {activeTab === "clapped-articles" && (
+              <div className="space-y-6">
+                <div className="border-b border-border/60 pb-4">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Berita Ditepuk (Clapped)</h1>
+                  <p className="text-muted-foreground text-xs sm:text-sm mt-1">
+                    Daftar berita yang Anda berikan tepuk tangan (claps).
+                  </p>
+                </div>
+
+                {clappedArticles.length === 0 ? (
+                  <div className="py-20 text-center border border-border/60 rounded-2xl bg-card/30">
+                    <p className="text-base font-bold">Belum Ada Berita Ditepuk</p>
+                    <p className="text-xs text-muted-foreground">Buka detail berita dan berikan tepuk tangan (clap) untuk menambahkannya ke sini.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {clappedArticles.map((item) => (
                       <ArticleCard key={item._id} news={item} formatDate={formatDate} />
                     ))}
                   </div>

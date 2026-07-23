@@ -42,7 +42,9 @@ export interface NewsArticle {
     username: string;
   };
   views?: number;
+  clapCount?: number;
   clapsCount?: number;
+  saveCount?: number;
   savesCount?: number;
   deleteRequest?: DeleteRequest;
   createdAt: string;

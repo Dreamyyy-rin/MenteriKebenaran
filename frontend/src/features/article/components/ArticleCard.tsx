@@ -55,16 +55,16 @@ export function ArticleCard({ news, formatDate, formatTime }: ArticleCardProps) 
             </div>
 
             <div className="flex items-center gap-3 text-muted-foreground text-[11px]">
-              {news.clapsCount !== undefined && news.clapsCount > 0 && (
+              {(news.clapCount ?? news.clapsCount ?? 0) > 0 && (
                 <span className="flex items-center gap-1">
                   <ThumbsUp className="w-3 h-3 text-primary" />
-                  {news.clapsCount}
+                  {news.clapCount ?? news.clapsCount}
                 </span>
               )}
-              {news.savesCount !== undefined && news.savesCount > 0 && (
+              {(news.saveCount ?? news.savesCount ?? 0) > 0 && (
                 <span className="flex items-center gap-1">
                   <Bookmark className="w-3 h-3 text-amber-500" />
-                  {news.savesCount}
+                  {news.saveCount ?? news.savesCount}
                 </span>
               )}
             </div>

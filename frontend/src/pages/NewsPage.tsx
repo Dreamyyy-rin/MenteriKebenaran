@@ -39,8 +39,13 @@ export default function NewsPage() {
           search: searchTerm.trim() || undefined,
         });
 
-        if (res.sukses && Array.isArray(res.data)) {
-          setNewsList(res.data);
+        if (res.sukses) {
+          const list = Array.isArray(res.data)
+            ? res.data
+            : (res.data && Array.isArray((res.data as any).data))
+            ? (res.data as any).data
+            : [];
+          setNewsList(list);
         } else if (Array.isArray(res as any)) {
           setNewsList(res as any);
         } else {

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -19,13 +19,11 @@ export default function ArticleDetailPage() {
   const [clapsCount, setClapsCount] = useState(0);
   const [saved, setSaved] = useState(false);
   const [savesCount, setSavesCount] = useState(0);
-  const fetchedRef = useRef<string | null>(null);
   const token = getToken();
 
   useEffect(() => {
     async function fetchArticle() {
-      if (!slug || fetchedRef.current === slug) return;
-      fetchedRef.current = slug;
+      if (!slug) return;
 
       try {
         let res = await api.getNewsBySlug(slug);
@@ -37,8 +35,29 @@ export default function ArticleDetailPage() {
         if (res.sukses && res.data) {
           const art = res.data;
           setArticle(art);
-          setClapsCount(art.clapsCount || 0);
-          setSavesCount(art.savesCount || 0);
+          setClapsCount(art.clapCount ?? art.clapsCount ?? 0);
+          setSavesCount(art.saveCount ?? art.savesCount ?? 0);
+
+          if (token) {
+            try {
+              const [resClapped, resSaved] = await Promise.all([
+                api.getClappedNews(),
+                api.getSavedNews(),
+              ]);
+
+              if (resClapped.sukses && Array.isArray(resClapped.data)) {
+                const isClapped = resClapped.data.some((c) => String(c._id) === String(art._id));
+                setClapped(isClapped);
+              }
+
+              if (resSaved.sukses && Array.isArray(resSaved.data)) {
+                const isSaved = resSaved.data.some((s) => String(s._id) === String(art._id));
+                setSaved(isSaved);
+              }
+            } catch (err) {
+              console.error("Error checking user clap/save status:", err);
+            }
+          }
         } else {
           setArticle(null);
         }

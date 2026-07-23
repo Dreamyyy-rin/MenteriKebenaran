@@ -79,12 +79,12 @@ export const api = {
     request<UserProfile>("/users/role", { method: "PUT", body: JSON.stringify(data) }),
 
   // User Interactions (Clap & Save)
-  clapNews: (newsId: string) => request(`/users/clap/${newsId}`, { method: "POST" }),
-  unclapNews: (newsId: string) => request(`/users/clap/${newsId}`, { method: "DELETE" }),
+  clapNews: (newsId: string) => request(`/news/${newsId}/clap`, { method: "POST" }),
+  unclapNews: (newsId: string) => request(`/news/${newsId}/clap`, { method: "DELETE" }),
   getClappedNews: () => request<NewsArticle[]>("/users/clapped"),
   
-  saveNews: (newsId: string) => request(`/users/saved/${newsId}`, { method: "POST" }),
-  unsaveNews: (newsId: string) => request(`/users/saved/${newsId}`, { method: "DELETE" }),
+  saveNews: (newsId: string) => request(`/news/${newsId}/save`, { method: "POST" }),
+  unsaveNews: (newsId: string) => request(`/news/${newsId}/save`, { method: "DELETE" }),
   getSavedNews: () => request<NewsArticle[]>("/users/saved"),
 
   // Categories

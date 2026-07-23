@@ -17,8 +17,13 @@ export default function HomePage() {
     async function fetchNews() {
       try {
         const res = await api.getNews({ limit: 10 });
-        if (res.sukses && Array.isArray(res.data)) {
-          setArticles(res.data);
+        if (res.sukses) {
+          const list = Array.isArray(res.data)
+            ? res.data
+            : (res.data && Array.isArray((res.data as any).data))
+            ? (res.data as any).data
+            : [];
+          setArticles(list);
         } else if (Array.isArray(res as any)) {
           setArticles(res as any);
         }
@@ -52,7 +57,7 @@ export default function HomePage() {
   }
 
   const heroArticle = articles[0];
-  const latestNews = articles.slice(1, 5);
+  const latestNews = articles.length > 1 ? articles.slice(1, 5) : articles;
   const trendingNews = articles.slice(0, 4);
 
   return (

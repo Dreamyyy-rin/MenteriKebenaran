@@ -67,10 +67,10 @@ export function HeroArticle({ article, formatDate, formatTime }: HeroArticleProp
               </div>
 
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                {article.clapsCount !== undefined && article.clapsCount > 0 && (
+                {(article.clapCount ?? article.clapsCount ?? 0) > 0 && (
                   <span className="flex items-center gap-1 font-medium text-primary">
                     <ThumbsUp className="w-3.5 h-3.5" />
-                    {article.clapsCount}
+                    {article.clapCount ?? article.clapsCount}
                   </span>
                 )}
                 {realTime && (
