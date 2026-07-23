@@ -12,6 +12,8 @@ import {
   Trash2,
   Plus,
   TrendingUp,
+  Upload,
+  Link as LinkIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +40,8 @@ export default function DashboardPage() {
   const [formContent, setFormContent] = useState("");
   const [formCategory, setFormCategory] = useState<"Berita" | "Artikel">("Berita");
   const [formFoto, setFormFoto] = useState("");
+  const [imageMode, setImageMode] = useState<"url" | "upload">("url");
+  const [isUploading, setIsUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -204,7 +208,36 @@ export default function DashboardPage() {
     setFormContent("");
     setFormCategory("Berita");
     setFormFoto("");
+    setImageMode("url");
   }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      setIsUploading(true);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal mengunggah gambar");
+      }
+
+      setFormFoto(data.url);
+      toast.success("Berhasil", "Gambar berhasil diunggah");
+    } catch (error: any) {
+      toast.error("Gagal", error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("id-ID", {
@@ -558,18 +591,55 @@ export default function DashboardPage() {
                     </select>
                   </div>
 
-                  {/* COVER IMAGE URL */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Cover Image URL
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="https://images.unsplash.com/..."
-                      value={formFoto}
-                      onChange={(e) => setFormFoto(e.target.value)}
-                      className="h-10 rounded-xl text-xs"
-                    />
+                  {/* COVER IMAGE */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Cover Image
+                      </label>
+                      <div className="flex items-center bg-muted p-1 rounded-lg">
+                        <button
+                          type="button"
+                          onClick={() => setImageMode("url")}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                            imageMode === "url" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <LinkIcon className="w-3.5 h-3.5" /> URL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setImageMode("upload")}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                            imageMode === "upload" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <Upload className="w-3.5 h-3.5" /> Upload
+                        </button>
+                      </div>
+                    </div>
+
+                    {imageMode === "url" ? (
+                      <Input
+                        type="text"
+                        placeholder="https://images.unsplash.com/..."
+                        value={formFoto}
+                        onChange={(e) => setFormFoto(e.target.value)}
+                        className="h-10 rounded-xl text-xs"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={isUploading}
+                          className="h-10 rounded-xl text-xs file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                        />
+                        {isUploading && <span className="text-xs text-muted-foreground animate-pulse">Mengunggah...</span>}
+                      </div>
+                    )}
+                    
                     {formFoto && (
                       <div className="aspect-video w-full rounded-xl overflow-hidden border mt-2">
                         <img src={formFoto} alt="Preview" className="w-full h-full object-cover" />

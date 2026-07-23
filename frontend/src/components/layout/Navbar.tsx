@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, Search } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 
 interface UserProfile {
@@ -16,6 +16,7 @@ export function Navbar() {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,6 +59,13 @@ export function Navbar() {
     });
   }
 
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 h-16 flex items-center justify-between gap-4">
@@ -82,8 +90,25 @@ export function Navbar() {
 
 
 
-        {/* Right: Auth Controls */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Right: Search & Auth Controls */}
+        <div className="flex items-center gap-4 shrink-0">
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} className="relative hidden sm:flex items-center">
+            <input
+              type="text"
+              placeholder="Cari berita..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 w-48 lg:w-64 rounded-full border border-border bg-background px-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
+            />
+            <button
+              type="submit"
+              className="absolute right-3 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </form>
+
           {currentUser ? (
             /* POPUP AVATAR SAAT SUDAH LOGIN */
             <div className="relative" ref={menuRef}>
