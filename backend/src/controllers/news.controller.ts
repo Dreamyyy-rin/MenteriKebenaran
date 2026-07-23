@@ -1,104 +1,383 @@
 import type { Request, Response } from "express";
 import { NewsService } from "@/services/news.service";
+import {
+  createNewsSchema,
+  updateNewsSchema,
+  requestDeleteNewsSchema,
+  reviewDeleteSchema,
+} from "@news-portal/shared";
 
 const service = new NewsService();
 
+// Helper to get string from params
+const getParam = (req: Request, key: string): string => {
+  const val = req.params[key];
+  if (Array.isArray(val)) return val[0] || "";
+  return val || "";
+};
+
+// Helper for validation error response
+const validationError = (res: Response, error: any) => {
+  res.status(400).json({
+    sukses: false,
+    pesan: "Validasi gagal",
+    kesalahan: error.format?.() || error.errors || error.message,
+  });
+};
+
 export class NewsController {
   async create(req: Request, res: Response) {
+    const parsed = createNewsSchema.safeParse(req.body);
+    if (!parsed.success) {
+      validationError(res, parsed.error);
+      return;
+    }
+
     try {
-      const { title, artikel, foto, category, tags } = req.body;
-
-      if (!title || !artikel) {
-        res.status(400).json({ error: "Title and artikel are required" });
-        return;
-      }
-
       const authorId = req.user!.userId;
-      const news = await service.create({ title, artikel, foto, category, tags, authorId });
-      res.status(201).json({ message: "News created successfully", news });
+      const news = await service.create({ ...parsed.data, authorId });
+
+      res.status(201).json({
+        sukses: true,
+        pesan: "Berita berhasil dibuat",
+        data: news,
+      });
     } catch (error: any) {
-      res.status(500).json({ error: error.message || "Failed to create news" });
+      const status = error.message.includes("tidak ditemukan") || error.message.includes("hanya") ? 400 : 500;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal membuat berita",
+      });
     }
   }
 
   async findAll(req: Request, res: Response) {
     try {
-      const page = parseInt(req.query["page"] as string) || 1;
-      const limit = parseInt(req.query["limit"] as string) || 10;
-      const category = req.query["category"] as string | undefined;
-      const search = req.query["search"] as string | undefined;
+      const { page = 1, limit = 10, category, search } = req.query;
 
-      const result = await service.findAll({ page, limit, category, search });
-      res.status(200).json(result);
+      const result = await service.findAll({
+        page: Number(page) || 1,
+        limit: Number(limit) || 10,
+        category: category as string | undefined,
+        search: search as string | undefined,
+      });
+
+      res.status(200).json({
+        sukses: true,
+        pesan: "Berhasil mengambil daftar berita",
+        data: result,
+      });
     } catch (error: any) {
-      res.status(500).json({ error: error.message || "Failed to fetch news" });
+      res.status(500).json({
+        sukses: false,
+        pesan: error.message || "Gagal mengambil daftar berita",
+      });
     }
   }
 
   async findById(req: Request, res: Response) {
     try {
-      const news = await service.findById(req.params["id"]!);
-      res.status(200).json(news);
+      const news = await service.findById(getParam(req, "id"));
+      res.status(200).json({
+        sukses: true,
+        pesan: "Berhasil mengambil berita",
+        data: news,
+      });
     } catch (error: any) {
-      const status = error.message === "News not found" ? 404 : 500;
-      res.status(status).json({ error: error.message || "Failed to fetch news" });
+      const status = error.message === "Berita tidak ditemukan" ? 404 : 500;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal mengambil berita",
+      });
     }
   }
 
   async findBySlug(req: Request, res: Response) {
     try {
-      const news = await service.findBySlug(req.params["slug"]!);
-      res.status(200).json(news);
+      const news = await service.findBySlug(getParam(req, "slug"));
+      res.status(200).json({
+        sukses: true,
+        pesan: "Berhasil mengambil berita",
+        data: news,
+      });
     } catch (error: any) {
-      const status = error.message === "News not found" ? 404 : 500;
-      res.status(status).json({ error: error.message || "Failed to fetch news" });
+      const status = error.message === "Berita tidak ditemukan" ? 404 : 500;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal mengambil berita",
+      });
     }
   }
 
   async update(req: Request, res: Response) {
+    const parsed = updateNewsSchema.safeParse(req.body);
+    if (!parsed.success) {
+      validationError(res, parsed.error);
+      return;
+    }
+
     try {
-      const { title, artikel, foto, category, tags } = req.body;
       const requesterId = req.user!.userId;
       const requesterRole = req.user!.role;
 
-      const existingNews = await service.findByIdNoIncrement(req.params["id"]!);
-      const authorId = typeof existingNews.author === "string"
-        ? existingNews.author
-        : existingNews.author._id?.toString?.() ?? existingNews.author.toString();
+      const news = await service.update(
+        getParam(req, "id"),
+        parsed.data,
+        requesterId,
+        requesterRole
+      );
 
-      if (authorId !== requesterId && requesterRole !== "admin") {
-        res.status(403).json({ error: "Forbidden: you are not allowed to update this news article" });
-        return;
-      }
-
-      const news = await service.update(req.params["id"]!, { title, artikel, foto, category, tags });
-      res.status(200).json({ message: "News updated successfully", news });
+      res.status(200).json({
+        sukses: true,
+        pesan: "Berita berhasil diperbarui",
+        data: news,
+      });
     } catch (error: any) {
-      const status = error.message === "News not found" ? 404 : 500;
-      res.status(status).json({ error: error.message || "Failed to update news" });
+      const status = error.message.includes("tidak ditemukan") ? 404 : 403;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal memperbarui berita",
+      });
     }
   }
 
-  async delete(req: Request, res: Response) {
+  // ===== DELETE REQUEST ENDPOINTS =====
+
+  async requestDelete(req: Request, res: Response) {
+    const parsed = requestDeleteNewsSchema.safeParse(req.body);
+    if (!parsed.success) {
+      validationError(res, parsed.error);
+      return;
+    }
+
     try {
       const requesterId = req.user!.userId;
-      const requesterRole = req.user!.role;
+      const result = await service.requestDelete(getParam(req, "id"), requesterId, parsed.data.reason);
 
-      const existingNews = await service.findByIdNoIncrement(req.params["id"]!);
-      const authorId = typeof existingNews.author === "string"
-        ? existingNews.author
-        : existingNews.author._id?.toString?.() ?? existingNews.author.toString();
-
-      if (authorId !== requesterId && requesterRole !== "admin") {
-        res.status(403).json({ error: "Forbidden: you are not allowed to delete this news article" });
-        return;
-      }
-
-      await service.delete(req.params["id"]!);
-      res.status(200).json({ message: "News deleted successfully" });
+      res.status(200).json({
+        sukses: true,
+        pesan: "Request penghapusan berhasil diajukan dan menunggu persetujuan admin",
+        data: result,
+      });
     } catch (error: any) {
-      const status = error.message === "News not found" ? 404 : 500;
-      res.status(status).json({ error: error.message || "Failed to delete news" });
+      const status = error.message.includes("tidak ditemukan") ? 404 : 400;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal mengajukan request penghapusan",
+      });
+    }
+  }
+
+  async getPendingDeleteRequests(req: Request, res: Response) {
+    try {
+      const { page = 1, limit = 10 } = req.query;
+
+      const result = await service.getPendingDeleteRequests({
+        page: Number(page) || 1,
+        limit: Number(limit) || 10,
+      });
+
+      res.status(200).json({
+        sukses: true,
+        pesan: "Berhasil mengambil daftar request",
+        data: result,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        sukses: false,
+        pesan: error.message || "Gagal mengambil daftar request",
+      });
+    }
+  }
+
+  async getMyDeleteRequests(req: Request, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const { page = 1, limit = 10 } = req.query;
+
+      const result = await service.getMyDeleteRequests(userId, {
+        page: Number(page) || 1,
+        limit: Number(limit) || 10,
+      });
+
+      res.status(200).json({
+        sukses: true,
+        pesan: "Berhasil mengambil daftar request Anda",
+        data: result,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        sukses: false,
+        pesan: error.message || "Gagal mengambil daftar request",
+      });
+    }
+  }
+
+  async approveDelete(req: Request, res: Response) {
+    const parsed = reviewDeleteSchema.safeParse(req.body);
+    if (!parsed.success) {
+      validationError(res, parsed.error);
+      return;
+    }
+
+    try {
+      const adminId = req.user!.userId;
+      const result = await service.approveDelete(getParam(req, "id"), adminId, parsed.data.reviewNote);
+
+      res.status(200).json({
+        sukses: true,
+        pesan: result.message,
+      });
+    } catch (error: any) {
+      const status = error.message.includes("tidak ditemukan") ? 404 : 400;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal menyetujui request",
+      });
+    }
+  }
+
+  async rejectDelete(req: Request, res: Response) {
+    const parsed = reviewDeleteSchema.safeParse(req.body);
+    if (!parsed.success) {
+      validationError(res, parsed.error);
+      return;
+    }
+
+    try {
+      const adminId = req.user!.userId;
+      const result = await service.rejectDelete(getParam(req, "id"), adminId, parsed.data.reviewNote);
+
+      res.status(200).json({
+        sukses: true,
+        pesan: "Request ditolak",
+        data: result,
+      });
+    } catch (error: any) {
+      const status = error.message.includes("tidak ditemukan") ? 404 : 400;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal menolak request",
+      });
+    }
+  }
+
+  async cancelDeleteRequest(req: Request, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const result = await service.cancelDeleteRequest(getParam(req, "id"), userId);
+
+      res.status(200).json({
+        sukses: true,
+        pesan: result.message,
+      });
+    } catch (error: any) {
+      const status = error.message.includes("tidak ditemukan") ? 404 : 400;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal membatalkan request",
+      });
+    }
+  }
+
+  // ===== CLAP & SAVE ENDPOINTS =====
+
+  async clap(req: Request, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const newsId = getParam(req, "id");
+
+      const result = await service.clap(newsId, userId);
+      res.status(200).json({
+        sukses: true,
+        pesan: result.message,
+      });
+    } catch (error: any) {
+      const status = error.message.includes("tidak ditemukan") ? 404 : 400;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal memberi tepuk tangan",
+      });
+    }
+  }
+
+  async unclap(req: Request, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const newsId = getParam(req, "id");
+
+      const result = await service.unclap(newsId, userId);
+      res.status(200).json({
+        sukses: true,
+        pesan: result.message,
+      });
+    } catch (error: any) {
+      const status = error.message.includes("tidak ditemukan") ? 404 : 400;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal menghapus tepuk tangan",
+      });
+    }
+  }
+
+  async save(req: Request, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const newsId = getParam(req, "id");
+
+      const result = await service.save(newsId, userId);
+      res.status(200).json({
+        sukses: true,
+        pesan: result.message,
+      });
+    } catch (error: any) {
+      const status = error.message.includes("tidak ditemukan") ? 404 : 400;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal menyimpan berita",
+      });
+    }
+  }
+
+  async unsave(req: Request, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const newsId = getParam(req, "id");
+
+      const result = await service.unsave(newsId, userId);
+      res.status(200).json({
+        sukses: true,
+        pesan: result.message,
+      });
+    } catch (error: any) {
+      const status = error.message.includes("tidak ditemukan") ? 404 : 400;
+      res.status(status).json({
+        sukses: false,
+        pesan: error.message || "Gagal menghapus berita dari tersimpan",
+      });
+    }
+  }
+
+  async getMyNews(req: Request, res: Response) {
+    try {
+      const authorId = req.user!.userId;
+      const { page = 1, limit = 10 } = req.query;
+
+      const news = await service.findByAuthor(authorId, {
+        page: Number(page) || 1,
+        limit: Number(limit) || 10,
+      });
+
+      res.status(200).json({
+        sukses: true,
+        pesan: "Berhasil mengambil berita Anda",
+        data: news,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        sukses: false,
+        pesan: error.message || "Gagal mengambil berita",
+      });
     }
   }
 }

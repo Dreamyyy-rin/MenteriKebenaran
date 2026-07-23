@@ -1,14 +1,25 @@
 import { Schema, model, Types } from "mongoose";
 
+export type DeleteStatus = "none" | "pending" | "approved" | "rejected";
+
 export interface INews {
   title: string;
   slug: string;
   foto?: string;
   artikel: string;
   author: Types.ObjectId;
-  category?: string;
+  category?: Types.ObjectId;
   tags?: string[];
   views: number;
+  clapCount: number;
+  saveCount: number;
+  // Delete request fields
+  deleteStatus: DeleteStatus;
+  deleteRequestedBy?: Types.ObjectId;
+  deleteReason?: string;
+  deleteReviewedBy?: Types.ObjectId;
+  deleteReviewedAt?: Date;
+  deleteReviewNote?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -20,14 +31,27 @@ const newsSchema = new Schema<INews>(
     foto:     { type: String, default: null },
     artikel:  { type: String, required: true },
     author:   { type: Schema.Types.ObjectId, ref: "User", required: true },
-    category: { type: String, trim: true, default: null },
+    category: { type: Schema.Types.ObjectId, ref: "Category", default: null },
     tags:     { type: [String], default: [] },
     views:    { type: Number, default: 0 },
+    clapCount: { type: Number, default: 0 },
+    saveCount: { type: Number, default: 0 },
+    // Delete request fields
+    deleteStatus: { type: String, enum: ["none", "pending", "approved", "rejected"], default: "none" },
+    deleteRequestedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    deleteReason: { type: String, default: null },
+    deleteReviewedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    deleteReviewedAt: { type: Date, default: null },
+    deleteReviewNote: { type: String, default: null },
   },
   { timestamps: true }
 );
 
-// Index to speed up author lookups (slug index is auto-created by unique:true)
+// Index untuk optimasi query
 newsSchema.index({ author: 1 });
+newsSchema.index({ category: 1 });
+newsSchema.index({ slug: 1 });
+newsSchema.index({ createdAt: -1 });
+newsSchema.index({ deleteStatus: 1 });
 
 export default model<INews>("News", newsSchema);

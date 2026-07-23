@@ -11,13 +11,13 @@ export class AuthService {
     // Check if email is already taken
     const existingEmail = await this.repository.findByEmail(data.email);
     if (existingEmail) {
-      throw new Error("Email already registered");
+      throw new Error("Email sudah terdaftar");
     }
 
     // Check if username is already taken
     const existingUsername = await this.repository.findByUsername(data.username);
     if (existingUsername) {
-      throw new Error("Username already taken");
+      throw new Error("Username sudah digunakan");
     }
 
     // Hash password and create user
@@ -32,12 +32,12 @@ export class AuthService {
   async login(data: LoginInput) {
     const user = await this.repository.findByEmail(data.email);
     if (!user) {
-      throw new Error("Invalid email or password");
+      throw new Error("Email atau password salah");
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
     if (!isPasswordValid) {
-      throw new Error("Invalid email or password");
+      throw new Error("Email atau password salah");
     }
 
     const token = jwt.sign(
@@ -48,5 +48,22 @@ export class AuthService {
 
     const { password: _pw, ...userWithoutPassword } = user.toObject();
     return { token, user: userWithoutPassword };
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.repository.findById(userId);
+    if (!user) {
+      throw new Error("Pengguna tidak ditemukan");
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new Error("Password saat ini salah");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await this.repository.updatePassword(userId, hashedPassword);
+
+    return { message: "Password berhasil diubah" };
   }
 }
