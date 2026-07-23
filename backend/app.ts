@@ -5,6 +5,7 @@ import userRoutes from "@/routes/user.route";
 import categoryRoutes from "@/routes/category.route";
 import newsRoutes from "@/routes/news.route";
 import discussionRoutes, { discussionDeleteRouter, discussionUpdateRouter } from "@/routes/discussion.route";
+import uploadRoutes from "@/routes/upload.route";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/news", newsRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Nested: GET /api/news/:newsId/discussions and POST /api/news/:newsId/discussions
 app.use("/api/news/:newsId/discussions", discussionRoutes);
