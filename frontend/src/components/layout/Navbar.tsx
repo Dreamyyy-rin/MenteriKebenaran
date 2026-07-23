@@ -73,10 +73,7 @@ export function Navbar() {
             Beranda
           </Link>
           <Link to="/news" className="hover:text-foreground transition-colors">
-            Berita
-          </Link>
-          <Link to="/articles" className="hover:text-foreground transition-colors">
-            Artikel
+            Jelajah & Kategori
           </Link>
         </nav>
 

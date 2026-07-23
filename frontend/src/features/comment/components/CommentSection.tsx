@@ -19,6 +19,7 @@ export function CommentSection({ newsId }: CommentSectionProps) {
 
   // State untuk Replying & Editing
   const [replyParentId, setReplyParentId] = useState<string | null>(null);
+  const [replyTargetRootId, setReplyTargetRootId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
@@ -88,8 +89,8 @@ export function CommentSection({ newsId }: CommentSectionProps) {
   }
 
   // Submit Reply
-  async function handleReplySubmit(parentId: string) {
-    if (!replyText.trim()) return;
+  async function handleReplySubmit() {
+    if (!replyText.trim() || !replyTargetRootId) return;
     if (!token) {
       toast.error("Akses Ditolak", "Silakan login terlebih dahulu.");
       return;
@@ -97,10 +98,12 @@ export function CommentSection({ newsId }: CommentSectionProps) {
 
     setSubmitting(true);
     try {
-      const res = await api.createDiscussion(newsId, replyText.trim(), parentId);
+      // Pass root comment ID as parentId so backend stores and includes it in replies thread
+      const res = await api.createDiscussion(newsId, replyText.trim(), replyTargetRootId);
       if (res.sukses) {
         setReplyText("");
         setReplyParentId(null);
+        setReplyTargetRootId(null);
         toast.success("Berhasil", "Balasan terkirim!");
         await loadDiscussions();
       } else {
@@ -164,7 +167,8 @@ export function CommentSection({ newsId }: CommentSectionProps) {
   };
 
   // Render Comment Item Component (recursive for nested replies)
-  const renderCommentItem = (item: DiscussionItem, isReply = false) => {
+  const renderCommentItem = (item: DiscussionItem, isReply = false, rootId?: string) => {
+    const rootCommentId = rootId || item._id;
     const commentUserId = typeof item.userId === "object" ? item.userId?._id : item.userId;
     const commentUsername = typeof item.userId === "object" ? item.userId?.username : undefined;
     const commentFullName = typeof item.userId === "object" ? item.userId?.fullName : undefined;
@@ -235,9 +239,12 @@ export function CommentSection({ newsId }: CommentSectionProps) {
                     onClick={() => {
                       if (replyParentId === item._id) {
                         setReplyParentId(null);
+                        setReplyTargetRootId(null);
+                        setReplyText("");
                       } else {
                         setReplyParentId(item._id);
-                        setReplyText("");
+                        setReplyTargetRootId(rootCommentId);
+                        setReplyText(isReply ? `@${commentUsername || commentFullName || "user"} ` : "");
                       }
                     }}
                     className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer"
@@ -314,13 +321,13 @@ export function CommentSection({ newsId }: CommentSectionProps) {
                 className="w-full rounded-lg border border-input bg-background p-2.5 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
               />
               <div className="flex justify-end gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setReplyParentId(null)} className="h-7 text-xs px-3">
+                <Button size="sm" variant="ghost" onClick={() => { setReplyParentId(null); setReplyTargetRootId(null); }} className="h-7 text-xs px-3">
                   Batal
                 </Button>
                 <Button
                   size="sm"
                   disabled={submitting || !replyText.trim()}
-                  onClick={() => handleReplySubmit(item._id)}
+                  onClick={handleReplySubmit}
                   className="h-7 text-xs px-3"
                 >
                   {submitting ? "Kirim..." : "Kirim Balasan"}
@@ -333,7 +340,7 @@ export function CommentSection({ newsId }: CommentSectionProps) {
         {/* Render Nested Replies */}
         {item.replies && item.replies.length > 0 && (
           <div className="space-y-2">
-            {item.replies.map((reply) => renderCommentItem(reply, true))}
+            {item.replies.map((reply) => renderCommentItem(reply, true, rootCommentId))}
           </div>
         )}
       </div>
@@ -362,12 +369,12 @@ export function CommentSection({ newsId }: CommentSectionProps) {
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Tuliskan pendapat atau tanggapanmu..."
+                placeholder="Tuliskan ide, pemikiran, atau pandangan Anda mengenai berita ini..."
                 rows={3}
-                className="w-full rounded-xl border border-input bg-background p-3 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                className="w-full rounded-xl border border-input bg-background p-3 text-xs sm:text-sm focus:ring-1 focus:ring-primary focus:outline-none leading-relaxed"
               />
               <div className="flex justify-end">
-                <Button type="submit" disabled={submitting || !newComment.trim()} className="rounded-full text-xs h-8 px-4 font-medium">
+                <Button size="sm" type="submit" disabled={submitting || !newComment.trim()} className="rounded-full px-5 text-xs">
                   {submitting ? "Mengirim..." : "Kirim Komentar"}
                 </Button>
               </div>
@@ -375,26 +382,26 @@ export function CommentSection({ newsId }: CommentSectionProps) {
           </div>
         </form>
       ) : (
-        <div className="rounded-xl border border-border/60 bg-muted/20 p-5 text-center space-y-2">
-          <p className="text-muted-foreground text-xs sm:text-sm">
-            Ingin ikut berdiskusi dan memberikan pendapatmu?
-          </p>
+        <div className="p-4 rounded-xl border border-border/60 bg-muted/30 text-center space-y-2">
+          <p className="text-xs text-muted-foreground">Ingin bergabung dalam diskusi berita ini?</p>
           <Link to="/login">
-            <Button size="sm" variant="default" className="rounded-full text-xs">Login Sekarang</Button>
+            <Button size="sm" variant="outline" className="rounded-full text-xs">
+              Login untuk Berkomentar
+            </Button>
           </Link>
         </div>
       )}
 
-      {/* List Komentar */}
+      {/* Daftar Komentar */}
       {loading ? (
-        <div className="space-y-3 pt-2">
-          <div className="h-12 bg-muted/40 animate-pulse rounded-lg" />
-          <div className="h-12 bg-muted/40 animate-pulse rounded-lg" />
+        <div className="py-10 text-center text-xs text-muted-foreground animate-pulse">
+          Memuat diskusi...
         </div>
       ) : comments.length === 0 ? (
-        <p className="text-xs text-muted-foreground text-center py-6">
-          Belum ada tanggapan. Jadilah yang pertama berdiskusi!
-        </p>
+        <div className="py-12 text-center border border-border/40 rounded-2xl bg-card/30">
+          <p className="text-sm font-semibold text-foreground">Belum Ada Diskusi</p>
+          <p className="text-xs text-muted-foreground mt-1">Jadilah yang pertama memberikan pendapat pada berita ini!</p>
+        </div>
       ) : (
         <div className="space-y-4 divide-y divide-border/40">
           {comments.map((item) => renderCommentItem(item, false))}
