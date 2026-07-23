@@ -16,6 +16,22 @@ export class DiscussionService {
   private repository = new DiscussionRepository();
   private newsRepository = new NewsRepository();
 
+  private getOwnerId(discussion: any): string | null {
+    if (!discussion?.userId) return null;
+
+    if (typeof discussion.userId === "string") {
+      return discussion.userId;
+    }
+
+    if (typeof discussion.userId === "object") {
+      const populatedUserId = discussion.userId._id?.toString?.();
+      if (populatedUserId) return populatedUserId;
+      return discussion.userId.toString?.();
+    }
+
+    return discussion.userId?.toString?.() ?? null;
+  }
+
   async create(input: CreateDiscussionInput) {
     const { newsId, userId, comment, parentId } = input;
 
@@ -72,8 +88,13 @@ export class DiscussionService {
     const discussion = await this.repository.findById(discussionId);
     if (!discussion) throw new Error("Komentar tidak ditemukan");
 
+    const ownerId = this.getOwnerId(discussion);
+    if (!ownerId) {
+      throw new Error("Data pemilik komentar tidak valid");
+    }
+
     // Only the comment owner can update their comment
-    if (discussion.userId.toString() !== requesterId) {
+    if (ownerId !== requesterId) {
       throw new Error("Anda tidak memiliki izin untuk memperbarui komentar ini");
     }
 
@@ -94,7 +115,12 @@ export class DiscussionService {
     const discussion = await this.repository.findById(discussionId);
     if (!discussion) throw new Error("Komentar tidak ditemukan");
 
-    const isOwner = discussion.userId.toString() === requesterId;
+    const ownerId = this.getOwnerId(discussion);
+    if (!ownerId) {
+      throw new Error("Data pemilik komentar tidak valid");
+    }
+
+    const isOwner = ownerId === requesterId;
     const isAdmin = requesterRole === "admin";
 
     if (!isOwner && !isAdmin) {
