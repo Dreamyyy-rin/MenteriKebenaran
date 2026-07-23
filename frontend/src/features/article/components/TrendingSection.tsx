@@ -20,25 +20,28 @@ export function TrendingSection({ articles, formatDate, formatTime }: TrendingSe
         <h2 className="text-2xl font-bold">Trending Now</h2>
       </div>
 
-      <div className="bg-muted/30 rounded-xl p-6 border">
+      <div className="bg-card/60 rounded-2xl p-6 border border-border/40 shadow-sm">
         <div className="space-y-6">
           {articles.map((news, index) => {
             const realTime = timeFormatter(news.createdAt);
+            const categoryName = typeof news.category === "object" ? news.category?.name : news.category;
+            const articlePath = `/news/${news.slug || news._id}`;
+
             return (
-              <div key={news._id}>
-                <Link to={`/news/${news.slug}`} className="group flex gap-4 items-start">
-                  <span className="text-3xl font-bold text-muted-foreground/30 font-serif leading-none mt-1">
-                    {(index + 1).toString().padStart(2, '0')}
+              <div key={news._id || index}>
+                <Link to={articlePath} className="group flex gap-4 items-start">
+                  <span className="text-2xl font-extrabold text-primary/40 font-serif leading-none mt-1">
+                    {(index + 1).toString().padStart(2, "0")}
                   </span>
                   <div className="flex-1 space-y-1">
-                    {news.category && (
-                      <p className="text-xs font-semibold text-primary uppercase tracking-wider">{news.category}</p>
+                    {categoryName && (
+                      <p className="text-[11px] font-bold text-primary uppercase tracking-wider">{categoryName}</p>
                     )}
-                    <h4 className="font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                    <h4 className="font-bold text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">
                       {news.title}
                     </h4>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 flex-wrap">
-                      <span className="font-medium">{news.author?.fullName || "Admin"}</span>
+                      <span className="font-medium text-foreground">{news.author?.fullName || news.author?.username || "Penulis"}</span>
                       <span>•</span>
                       <span>{formatDate(news.createdAt)}</span>
                       {realTime && (
@@ -52,11 +55,11 @@ export function TrendingSection({ articles, formatDate, formatTime }: TrendingSe
                       )}
                     </div>
                   </div>
-                  <div className="w-16 h-16 shrink-0 rounded-md overflow-hidden bg-muted">
+                  <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-muted border border-border/40">
                     <img 
                       src={news.foto || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=200"}
-                      alt=""
-                      className="w-full h-full object-cover"
+                      alt={news.title}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
                   </div>
                 </Link>
@@ -71,4 +74,3 @@ export function TrendingSection({ articles, formatDate, formatTime }: TrendingSe
     </aside>
   );
 }
-

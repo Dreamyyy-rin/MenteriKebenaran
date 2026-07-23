@@ -5,7 +5,8 @@ import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/features/article/components/ArticleCard";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import type { NewsArticle, NewsResponse } from "@/types/news";
+import type { NewsArticle } from "@/types/news";
+import { api } from "@/lib/api";
 
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
@@ -29,11 +30,11 @@ export default function SearchPage() {
 
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:5000/api/news?search=${encodeURIComponent(query)}`);
-        if (res.ok) {
-          const data: NewsResponse = await res.json();
-          const items = data.data || data.news || (Array.isArray(data) ? data : []);
-          setResults(items);
+        const res = await api.getNews({ search: query });
+        if (res.sukses && Array.isArray(res.data)) {
+          setResults(res.data);
+        } else if (Array.isArray(res as any)) {
+          setResults(res as any);
         } else {
           setResults([]);
         }
@@ -56,7 +57,10 @@ export default function SearchPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
+    if (!dateString) return "-";
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "-";
+    return d.toLocaleDateString("id-ID", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -68,7 +72,7 @@ export default function SearchPage() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-10 space-y-10">
-        <div className="border-b pb-8 space-y-6">
+        <div className="border-b border-border/60 pb-8 space-y-6">
           <div className="space-y-2">
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-3">
               Hasil Pencarian <Search className="w-8 h-8 text-primary" />
@@ -95,8 +99,9 @@ export default function SearchPage() {
         </div>
 
         {loading ? (
-          <div className="py-20 text-center text-muted-foreground animate-pulse">
-            Mencari berita...
+          <div className="py-20 text-center text-muted-foreground animate-pulse flex flex-col items-center gap-2">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-xs">Mencari berita...</p>
           </div>
         ) : !query.trim() ? (
           <div className="py-20 text-center text-muted-foreground">
@@ -122,4 +127,3 @@ export default function SearchPage() {
     </div>
   );
 }
-

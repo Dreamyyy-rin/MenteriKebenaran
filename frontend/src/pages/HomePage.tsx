@@ -4,7 +4,8 @@ import { Footer } from "@/components/layout/Footer";
 import { HeroArticle } from "@/features/article/components/HeroArticle";
 import { ArticleCard } from "@/features/article/components/ArticleCard";
 import { TrendingSection } from "@/features/article/components/TrendingSection";
-import type { NewsArticle, NewsResponse } from "@/types/news";
+import type { NewsArticle } from "@/types/news";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
 
@@ -15,11 +16,11 @@ export default function HomePage() {
   useEffect(() => {
     async function fetchNews() {
       try {
-        const res = await fetch("http://localhost:5000/api/news?limit=10");
-        if (res.ok) {
-          const data: NewsResponse = await res.json();
-          const items = data.data || data.news || (Array.isArray(data) ? data : []);
-          setArticles(items);
+        const res = await api.getNews({ limit: 10 });
+        if (res.sukses && Array.isArray(res.data)) {
+          setArticles(res.data);
+        } else if (Array.isArray(res as any)) {
+          setArticles(res as any);
         }
       } catch (error) {
         console.error("Gagal mengambil berita dari database:", error);
@@ -31,7 +32,10 @@ export default function HomePage() {
   }, []);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
+    if (!dateString) return "-";
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "-";
+    return d.toLocaleDateString("id-ID", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -40,8 +44,9 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <p className="text-xl text-muted-foreground animate-pulse">Memuat berita dari database...</p>
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-background gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground font-medium animate-pulse">Memuat berita terbaru...</p>
       </div>
     );
   }
@@ -56,8 +61,8 @@ export default function HomePage() {
 
       <main className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-10 space-y-16">
         {articles.length === 0 ? (
-          <div className="py-24 text-center border rounded-3xl bg-card/40 space-y-4 max-w-xl mx-auto">
-            <h2 className="text-2xl font-bold">Belum Ada Berita di Database</h2>
+          <div className="py-24 text-center border border-border/60 rounded-3xl bg-card/40 space-y-4 max-w-xl mx-auto p-6 shadow-sm">
+            <h2 className="text-2xl font-extrabold">Belum Ada Berita di Database</h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Database saat ini masih kosong. Silakan login dan masuk ke Dashboard untuk menerbitkan berita pertama Anda!
             </p>
@@ -77,7 +82,7 @@ export default function HomePage() {
               <div className="lg:col-span-2 space-y-6">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-                  <h2 className="text-2xl font-bold">Latest News</h2>
+                  <h2 className="text-2xl font-bold tracking-tight">Berita Terbaru</h2>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
