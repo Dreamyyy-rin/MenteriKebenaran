@@ -5,12 +5,16 @@ import userRoutes from "@/routes/user.route";
 import categoryRoutes from "@/routes/category.route";
 import newsRoutes from "@/routes/news.route";
 import discussionRoutes, { discussionDeleteRouter, discussionUpdateRouter } from "@/routes/discussion.route";
+import uploadRoutes from "@/routes/upload.route";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
+
+// API Routes
+app.use("/api/upload", uploadRoutes);
 
 // API Routes
 app.use("/api/auth", authRoutes);
