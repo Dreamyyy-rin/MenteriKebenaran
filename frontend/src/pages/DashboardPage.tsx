@@ -69,6 +69,7 @@ export default function DashboardPage() {
   const [formFoto, setFormFoto] = useState("");
   const [formTags, setFormTags] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Form State untuk Update Profile
   const [profileFullName, setProfileFullName] = useState(currentUser?.fullName || "");
@@ -282,6 +283,52 @@ export default function DashboardPage() {
       toast.error("Error", e.message || "Gagal memperbarui password.");
     } finally {
       setChangingPassword(false);
+    }
+  }
+
+  // Image Upload Handler
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Format Salah", "Harap pilih file gambar (JPG, PNG, dll).");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File Terlalu Besar", "Ukuran maksimal gambar adalah 5MB.");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const t = getToken();
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+      // If baseUrl already ends with /api, we just append /upload
+      const endpoint = baseUrl.endsWith("/api") ? `${baseUrl}/upload` : `${baseUrl}/api/upload`;
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${t}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.sukses) {
+        throw new Error(data.pesan || "Gagal mengunggah gambar");
+      }
+
+      setFormFoto(data.url);
+      toast.success("Berhasil", "Gambar berhasil diunggah!");
+    } catch (e: any) {
+      toast.error("Error Upload", e.message);
+    } finally {
+      setUploadingImage(false);
     }
   }
 
@@ -1010,7 +1057,22 @@ export default function DashboardPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-semibold text-muted-foreground">URL Gambar Cover</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Gambar Cover</label>
+                        
+                        <div className="flex gap-2 mb-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            disabled={uploadingImage}
+                            className="h-9 rounded-xl text-xs flex-1 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-px bg-border flex-1"></div>
+                          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">ATAU GUNAKAN URL</span>
+                          <div className="h-px bg-border flex-1"></div>
+                        </div>
                         <Input
                           type="text"
                           placeholder="https://images.unsplash.com/..."
@@ -1018,7 +1080,10 @@ export default function DashboardPage() {
                           onChange={(e) => setFormFoto(e.target.value)}
                           className="h-9 rounded-xl text-xs"
                         />
-                        {formFoto && (
+                        
+                        {uploadingImage && <div className="text-xs text-primary mt-2">Mengunggah gambar...</div>}
+                        
+                        {formFoto && !uploadingImage && (
                           <div className="aspect-video w-full rounded-xl overflow-hidden border mt-2">
                             <img src={formFoto} alt="Preview" className="w-full h-full object-cover" />
                           </div>

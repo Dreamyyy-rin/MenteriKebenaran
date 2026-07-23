@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/features/article/components/ArticleCard";
@@ -9,11 +10,27 @@ import type { Category, NewsArticle } from "@/types/news";
 import { api } from "@/lib/api";
 
 export default function NewsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [newsList, setNewsList] = useState<NewsArticle[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("category") || "");
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const [loading, setLoading] = useState(true);
+
+  // Sinkronisasi dengan URL dari Navbar
+  useEffect(() => {
+    const q = searchParams.get("search");
+    if (q !== null && q !== searchTerm) {
+      setSearchTerm(q);
+    }
+    
+    const cat = searchParams.get("category");
+    if (cat !== null && cat !== selectedCategory) {
+      setSelectedCategory(cat);
+    } else if (cat === null && selectedCategory !== "") {
+      setSelectedCategory("");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function loadCategories() {
@@ -100,7 +117,20 @@ export default function NewsPage() {
                 type="text"
                 placeholder="Cari berita berdasarkan judul atau kata kunci..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setSearchParams(
+                    (prev) => {
+                      if (e.target.value.trim()) {
+                        prev.set("search", e.target.value);
+                      } else {
+                        prev.delete("search");
+                      }
+                      return prev;
+                    },
+                    { replace: true }
+                  );
+                }}
                 className="h-12 w-full rounded-xl bg-muted/30 pl-11 pr-4 text-base focus-visible:ring-1 border"
               />
             </div>
@@ -108,7 +138,13 @@ export default function NewsPage() {
             {categories.length > 0 && (
               <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                 <Badge
-                  onClick={() => setSelectedCategory("")}
+                  onClick={() => {
+                    setSelectedCategory("");
+                    setSearchParams((prev) => {
+                      prev.delete("category");
+                      return prev;
+                    }, { replace: true });
+                  }}
                   className={`cursor-pointer px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     selectedCategory === ""
                       ? "bg-primary text-primary-foreground"
@@ -120,7 +156,13 @@ export default function NewsPage() {
                 {categories.map((cat) => (
                   <Badge
                     key={cat._id}
-                    onClick={() => setSelectedCategory(cat._id)}
+                    onClick={() => {
+                      setSelectedCategory(cat._id);
+                      setSearchParams((prev) => {
+                        prev.set("category", cat._id);
+                        return prev;
+                      }, { replace: true });
+                    }}
                     className={`cursor-pointer px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
                       selectedCategory === cat._id
                         ? "bg-primary text-primary-foreground"

@@ -33,11 +33,11 @@ export function TrendingSection({ articles, formatDate, formatTime }: TrendingSe
                   <span className="text-2xl font-extrabold text-primary/40 font-serif leading-none mt-1">
                     {(index + 1).toString().padStart(2, "0")}
                   </span>
-                  <div className="flex-1 space-y-1">
+                  <div className="flex-1 min-w-0 space-y-1">
                     {categoryName && (
                       <p className="text-[11px] font-bold text-primary uppercase tracking-wider">{categoryName}</p>
                     )}
-                    <h4 className="font-bold text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                    <h4 className="font-bold text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2 break-all">
                       {news.title}
                     </h4>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 flex-wrap">

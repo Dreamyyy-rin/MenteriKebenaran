@@ -27,9 +27,7 @@ const userSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-// Index untuk optimasi query
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
+// Index untuk optimasi query (email dan username otomatis dibuat unik/indeks)
 userSchema.index({ role: 1 });
 
 export default model<IUser>("User", userSchema);

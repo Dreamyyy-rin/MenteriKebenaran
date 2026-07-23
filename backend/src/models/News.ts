@@ -50,7 +50,7 @@ const newsSchema = new Schema<INews>(
 // Index untuk optimasi query
 newsSchema.index({ author: 1 });
 newsSchema.index({ category: 1 });
-newsSchema.index({ slug: 1 });
+// (slug is indexed automatically via unique: true)
 newsSchema.index({ createdAt: -1 });
 newsSchema.index({ deleteStatus: 1 });
 

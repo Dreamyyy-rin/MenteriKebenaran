@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, Search } from "lucide-react";
 import { toast } from "@/components/ui/toast";
+import type { Category } from "@/types/news";
+import { api } from "@/lib/api";
 
 interface UserProfile {
   fullName: string;
@@ -17,6 +19,37 @@ export function Navbar() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await api.getCategories();
+        if (res.sukses && Array.isArray(res.data)) {
+          setCategories(res.data);
+        }
+      } catch (e) {
+        console.error("Gagal memuat kategori di navbar:", e);
+      }
+    }
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    const q = searchParams.get("search");
+    if (q !== null && q !== searchQuery) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/news?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  }
 
   useEffect(() => {
     const userJson = localStorage.getItem("user");
@@ -68,12 +101,17 @@ export function Navbar() {
         </Link>
 
         {/* Center: Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
           <Link to="/" className="hover:text-foreground transition-colors font-semibold">
             Beranda
           </Link>
-          <Link to="/news" className="hover:text-foreground transition-colors">
-            Jelajah & Kategori
+          {categories.slice(0, 4).map((cat) => (
+            <Link key={cat._id} to={`/news?category=${cat._id}`} className="hover:text-foreground transition-colors whitespace-nowrap">
+              {cat.name}
+            </Link>
+          ))}
+          <Link to="/news" className="hover:text-foreground transition-colors font-semibold">
+            Lainnya
           </Link>
         </nav>
 
@@ -81,6 +119,20 @@ export function Navbar() {
 
         {/* Right: Auth Controls */}
         <div className="flex items-center gap-3 shrink-0">
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} className="hidden sm:flex items-center relative">
+            <input 
+              type="text" 
+              placeholder="Cari berita..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 w-40 lg:w-56 rounded-full border border-border bg-muted/40 px-4 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all pr-8"
+            />
+            <button type="submit" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <Search className="w-3.5 h-3.5" />
+            </button>
+          </form>
+
           {currentUser ? (
             /* POPUP AVATAR SAAT SUDAH LOGIN */
             <div className="relative" ref={menuRef}>
